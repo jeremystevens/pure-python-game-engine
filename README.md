@@ -49,11 +49,19 @@ This project proves that you can build sophisticated game engines without relyin
 - **No External Dependencies**: Audio system built entirely with Python standard library
 - **Real-time Playback**: Thread-based sound playback system
 
+### Assets and Animation
+- **Central Image Cache**: Canonical path resolution and identity reuse
+- **Tkinter Image Rendering**: PNG, GIF, PGM, and PPM support without dependencies
+- **Sprite Atlases**: Named regions with lazy frame extraction and caching
+- **Reusable Animation Clips**: Shared clips with independent playback state
+- **Playback Controls**: Play, pause, resume, stop, loop, and completion callbacks
+
 ## 🏗️ Project Structure
 
 ```
 .
 ├── engine/                  # Game engine package
+│   ├── assets/              # Image caching, atlases, and animation clips
 │   ├── audio/               # Procedural sound generation
 │   ├── collision/           # Collider components and overlap detection
 │   ├── core/                # Main loop, window, and logging
@@ -214,6 +222,23 @@ child.transform.enable_3d()
 child.transform.quaternion_rotation = Quaternion.from_axis_angle(Vector3.up(), math.pi/4)
 ```
 
+### Assets and Animation
+
+Each game owns an `AssetManager` for loading and caching Tk-compatible images. Sprites can render images directly or select lazily extracted atlas frames driven by reusable animation clips:
+
+```python
+from engine import AnimationClip, SpriteAtlas, Vector2
+
+sheet = self.asset_manager.load_image('assets/characters.png')
+atlas = SpriteAtlas(Vector2(320, 64), sheet)
+frames = atlas.create_animation_frames(
+    'walk', 5, Vector2(64, 64), Vector2.zero()
+)
+clip = AnimationClip.from_frames('walk', frames, 0.12)
+```
+
+See [`docs/ASSETS_AND_ANIMATION.md`](docs/ASSETS_AND_ANIMATION.md) and run `python -m examples.demos.atlas` for the real PNG demo.
+
 ### Collision System
 
 Scenes automatically detect contacts between `CircleCollider` and `AABBCollider` components. Layers and masks filter pairs, while enter, stay, and exit callbacks let games define their own responses:
@@ -340,6 +365,7 @@ This engine prioritizes education and simplicity over speculative optimization. 
 - **Squared-Distance Geometry**: Avoids square roots where only overlap is needed
 - **Collision Layer Filtering**: Rejects disallowed pairs before geometry tests
 - **Snapshot-Safe Updates**: Allows callbacks to add or destroy objects safely
+- **Asset Caching**: Reuses decoded images and extracted atlas frames
 
 Collision broad-phase detection currently checks collider pairs directly. Object pooling and spatial partitioning are intentionally deferred until profiling demonstrates a need.
 
@@ -355,6 +381,7 @@ By studying this engine, you'll learn:
 - 2D graphics rendering techniques
 - Transform hierarchies and world/local space conversions
 - Scene management and state machines
+- Image caching, sprite atlases, and frame animation
 - **Procedural audio generation and waveform synthesis**
 - **Mathematical sound effect creation**
 - Performance optimization techniques

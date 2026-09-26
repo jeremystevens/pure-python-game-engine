@@ -63,11 +63,12 @@ Milestone 3: High-Value Engine Capabilities
     • Collision enter, stay, and exit callbacks.
     • Optional spatial hashing for broad-phase detection remains deferred until profiling demonstrates a need.
 The shared collision system is integrated with scenes, documented, and exercised by Breakout as its first complete reference game.
-2. Asset and animation system
+2. Asset and animation system — completed September 26, 2026
     • Central image and asset cache.
     • Sprite-sheet and texture-atlas support.
     • Reusable animation clips and frame timing.
     • Consistent asset paths and graceful missing-asset behavior.
+The system now provides cached Tkinter images, lazy sprite-sheet extraction, reusable clips with independent playback, documentation, and a real PNG demo asset.
 3. Scene-management improvements
     • Named scene registry.
     • Pause and resume support.
@@ -92,7 +93,7 @@ Recommended Work Order
     3. Timing and lifecycle corrections.
     4. A documented decision about GameObject versus ECS. (Completed)
     5. Reusable collision system. (Completed)
-    6. Asset and animation improvements.
+    6. Asset and animation improvements. (Completed)
     7. Debugging tools and a decision on hot reload.
     8. README and API documentation updates.
     9. Another game only after the improved foundations can be exercised by it.

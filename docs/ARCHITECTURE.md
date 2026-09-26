@@ -54,6 +54,7 @@ Both models may use low-level, model-independent facilities such as:
 
 - Vector and quaternion mathematics
 - Rendering primitives
+- Image assets, sprite atlases, and animation clips
 - Input state
 - Procedural audio
 - Timing utilities
