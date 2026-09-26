@@ -1,6 +1,7 @@
+"""Experimental Entity Component System implementation.
 
-"""
-Entity Component System (ECS) implementation
+GameObject components are the engine's primary supported architecture. ECS APIs
+remain available through this explicit subpackage for experiments and demos.
 """
 
 from .entity import Entity, EntityManager

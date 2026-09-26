@@ -40,7 +40,7 @@ Graphical screenshot tests are intentionally deferred. The first tests should be
     • Replace broad exception handlers with specific exceptions.
     • Define and test the supported Python version range.
     • Verify lifecycle ordering during initialization, scene transitions, shutdown, and exceptional exits.
-Milestone 2: Clarify the Engine Architecture
+Milestone 2: Clarify the Engine Architecture — completed September 26, 2026
 The project currently contains two overlapping object models: the Scene/GameObject/component model used by the working games, and a separate World/entity/ECS model. Before expanding both, choose their long-term relationship.
 Option A: Keep GameObject as the primary API (recommended)
     • Continue using the architecture already proven by the example games.
@@ -54,7 +54,7 @@ Option B: Make ECS the engine core
 Option C: Build a deliberate hybrid
     • Keep GameObject as a friendly public facade backed internally by ECS entities and components.
     • Only choose this approach when its added complexity solves a specific problem.
-Current recommendation: choose Option A. The existing GameObject model already works across several games, so it should be strengthened before considering a migration or hybrid abstraction.
+Decision: Option A accepted. GameObject/components are the primary supported architecture; ECS remains an explicitly imported experimental subsystem.
 Milestone 3: High-Value Engine Capabilities
 1. Reusable collision system
     • Circle, rectangle, and point colliders.
@@ -84,14 +84,14 @@ A shared collision system should replace duplicated collision logic in individua
 Known Items to Revisit
     • engine/core/hot_reload.py is empty.
     • examples/demos/hot_reload.py is empty.
-    • Logging and ECS code exist but are not exposed through the main engine package API.
+    • Logging is not exposed through the main engine package API; ECS is intentionally available only through its experimental subpackage.
     • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
-    • The README contains claims that should be verified against the implementation, including fixed timestep, object pooling, and spatial partitioning.
+    • The README claims about object pooling and spatial partitioning still need verification against the implementation.
 Recommended Work Order
     1. Repository cleanup and stable release tag.
     2. Automated tests for non-graphical systems.
     3. Timing and lifecycle corrections.
-    4. A documented decision about GameObject versus ECS.
+    4. A documented decision about GameObject versus ECS. (Completed)
     5. Reusable collision system.
     6. Asset and animation improvements.
     7. Debugging tools and a decision on hot reload.

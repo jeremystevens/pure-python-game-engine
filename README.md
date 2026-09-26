@@ -56,7 +56,7 @@ This project proves that you can build sophisticated game engines without relyin
 ├── engine/                  # Game engine package
 │   ├── audio/               # Procedural sound generation
 │   ├── core/                # Main loop, window, and logging
-│   ├── ecs/                 # Entity Component System implementation
+│   ├── ecs/                 # Experimental Entity Component System
 │   ├── graphics/            # Canvas renderer and sprites
 │   ├── input/               # Keyboard, mouse, and input profiles
 │   ├── math/                # Vectors, transforms, and quaternions
@@ -167,10 +167,19 @@ The examples demonstrate:
 
 ## 🔧 Architecture Overview
 
-### Component System
+### Architectural Direction
+
+The `Scene` → `GameObject` → `Component` model is the primary supported architecture and should be used for new games. The separate ECS under `engine.ecs` remains available for experimentation and its focused demo, but it is not re-exported from the top-level package or automatically synchronized with GameObjects.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full decision, boundaries, consequences, and criteria for reconsidering it.
+
+### Primary GameObject Component System
+
 The engine uses a component-based architecture where game objects are containers for components that define behavior:
 
 ```python
+from engine import Component, GameObject, Sprite, Vector2
+
 # Create a game object
 player = GameObject("Player")
 
