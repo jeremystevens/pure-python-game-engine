@@ -154,6 +154,14 @@ class FakeWindow:
         pass
 
 
+class FakeAssetManager:
+    def __init__(self, log):
+        self.log = log
+
+    def clear(self):
+        self.log.append('assets.clear')
+
+
 class FakeInputManager:
     def __init__(self, log):
         self.log = log
@@ -215,10 +223,12 @@ class GameEngineLifecycleTests(unittest.TestCase):
     def create_engine(self, log, fail_during_update=False):
         window = FakeWindow(log)
         inputs = FakeInputManager(log)
+        assets = FakeAssetManager(log)
         with (
             patch('engine.core.engine.Window', return_value=window) as window_class,
             patch('engine.core.engine.InputManager', return_value=inputs),
             patch('engine.core.engine.Renderer', return_value=object()),
+            patch('engine.core.engine.AssetManager', return_value=assets),
         ):
             engine = RecordingEngine(log, fail_during_update)
         return engine, window, window_class
@@ -229,6 +239,27 @@ class GameEngineLifecycleTests(unittest.TestCase):
         window_class.assert_called_once_with('Test Engine', (320, 240), 50, 0.05)
         self.assertEqual(engine.target_fps, 50)
         self.assertEqual(engine.max_delta_time, 0.05)
+
+    def test_constructor_configures_central_asset_manager(self):
+        log = []
+        window = FakeWindow(log)
+        assets = FakeAssetManager(log)
+        with (
+            patch('engine.core.engine.Window', return_value=window),
+            patch(
+                'engine.core.engine.InputManager',
+                return_value=FakeInputManager(log),
+            ),
+            patch('engine.core.engine.Renderer', return_value=object()),
+            patch(
+                'engine.core.engine.AssetManager',
+                return_value=assets,
+            ) as asset_manager_class,
+        ):
+            engine = GameEngine(asset_root='game-assets')
+
+        asset_manager_class.assert_called_once_with('game-assets')
+        self.assertIs(engine.asset_manager, assets)
 
     def test_run_has_predictable_lifecycle_order(self):
         log = []
@@ -251,6 +282,7 @@ class GameEngineLifecycleTests(unittest.TestCase):
                 'window.update',
                 'game.cleanup',
                 'scene.cleanup',
+                'assets.clear',
                 'window.quit',
             ],
         )
@@ -274,7 +306,13 @@ class GameEngineLifecycleTests(unittest.TestCase):
 
         self.assertEqual(
             log,
-            ['game.initialize', 'game.cleanup', 'scene.cleanup', 'window.quit'],
+            [
+                'game.initialize',
+                'game.cleanup',
+                'scene.cleanup',
+                'assets.clear',
+                'window.quit',
+            ],
         )
         self.assertFalse(engine.is_running)
 
@@ -286,7 +324,10 @@ class GameEngineLifecycleTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'update failed'):
             engine.run()
 
-        self.assertEqual(log[-3:], ['game.cleanup', 'scene.cleanup', 'window.quit'])
+        self.assertEqual(
+            log[-4:],
+            ['game.cleanup', 'scene.cleanup', 'assets.clear', 'window.quit'],
+        )
         self.assertFalse(engine.is_running)
 
     def test_scene_transition_cleans_old_scene_before_initializing_new_scene(self):

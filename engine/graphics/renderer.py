@@ -100,6 +100,22 @@ class Renderer:
             anchor=anchor
         )
 
+    def draw_image(
+        self,
+        position: Vector2,
+        image,
+        anchor: str = 'center',
+    ):
+        """Draw a Tk-compatible image centered at a world position."""
+        if image is None:
+            return None
+        return self.canvas.create_image(
+            position.x,
+            position.y,
+            image=image,
+            anchor=anchor,
+        )
+
     def draw_polygon(self, points: list, color: str = '#FFFFFF',
                     outline: str = None, width: int = 1):
         """Draw a polygon from a list of Vector2 points"""

@@ -3,6 +3,7 @@ Main game engine class that orchestrates all systems
 """
 from typing import Optional
 from .window import Window
+from ..assets.asset_manager import AssetManager
 from ..scene.scene import Scene
 from ..input.input_manager import InputManager
 from ..graphics.renderer import Renderer
@@ -17,6 +18,7 @@ class GameEngine:
         size: tuple = (800, 600),
         target_fps: int = 60,
         max_delta_time: float = 0.1,
+        asset_root=None,
     ):
         """Initialize the game engine"""
         self.title = title
@@ -29,6 +31,7 @@ class GameEngine:
         self.window = Window(title, size, target_fps, max_delta_time)
         self.input_manager = InputManager()
         self.renderer = Renderer(self.window.canvas)
+        self.asset_manager = AssetManager(asset_root)
         
         # Connect input manager to window
         self.window.set_key_press_callback(self.input_manager.on_key_press)
@@ -122,7 +125,10 @@ class GameEngine:
                     if self.current_scene:
                         self.current_scene.cleanup()
                 finally:
-                    self.window.quit()
+                    try:
+                        self.asset_manager.clear()
+                    finally:
+                        self.window.quit()
     
     def quit(self):
         """Quit the game"""

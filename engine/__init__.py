@@ -13,6 +13,7 @@ from .math.transform import Transform
 from .math.quaternion import Quaternion
 from .graphics.renderer import Renderer
 from .graphics.sprite import Sprite
+from .assets import AssetManager, AnimationClip, SpriteAnimation, SpriteAtlas
 from .collision.collider import (
     AABBCollider,
     CircleCollider,
@@ -34,6 +35,10 @@ __all__ = [
     'Quaternion',
     'Renderer',
     'Sprite',
+    'AssetManager',
+    'AnimationClip',
+    'SpriteAnimation',
+    'SpriteAtlas',
     'Collider',
     'PointCollider',
     'CircleCollider',
