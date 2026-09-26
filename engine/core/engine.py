@@ -1,7 +1,6 @@
 """
 Main game engine class that orchestrates all systems
 """
-import time
 from typing import Optional
 from .window import Window
 from ..scene.scene import Scene
@@ -12,15 +11,22 @@ from ..graphics.renderer import Renderer
 class GameEngine:
     """Main game engine class"""
     
-    def __init__(self, title: str = "2D Game Engine", size: tuple = (800, 600), target_fps: int = 60):
+    def __init__(
+        self,
+        title: str = "2D Game Engine",
+        size: tuple = (800, 600),
+        target_fps: int = 60,
+        max_delta_time: float = 0.1,
+    ):
         """Initialize the game engine"""
         self.title = title
         self.size = size
         self.target_fps = target_fps
+        self.max_delta_time = max_delta_time
         self.is_running = False
         
         # Core systems
-        self.window = Window(title, size)
+        self.window = Window(title, size, target_fps, max_delta_time)
         self.input_manager = InputManager()
         self.renderer = Renderer(self.window.canvas)
         
@@ -63,66 +69,60 @@ class GameEngine:
         self.next_scene = scene
     
     def run(self):
-        """Main game loop"""
+        """Run the bounded variable-timestep game loop"""
         self.is_running = True
-        
-        # Initialize the game
-        self.initialize()
-        
-        # Initialize the current scene
-        if self.current_scene:
-            self.current_scene.initialize()
-        
-        while self.is_running and not self.window.should_close():
-            # Handle scene transitions
-            if self.next_scene:
-                if self.current_scene:
-                    self.current_scene.cleanup()
-                self.current_scene = self.next_scene
+
+        try:
+            self.initialize()
+
+            if self.current_scene:
                 self.current_scene.initialize()
-                self.next_scene = None
-            
-            # Update delta time with smoothing
-            raw_delta = self.window.delta_time
-            self.delta_time_samples.append(raw_delta)
-            
-            # Keep only the last N samples
-            if len(self.delta_time_samples) > self.max_delta_samples:
-                self.delta_time_samples.pop(0)
-            
-            # Calculate smoothed delta time
-            self.smoothed_delta_time = sum(self.delta_time_samples) / len(self.delta_time_samples)
-            self.delta_time = self.smoothed_delta_time
-            self.total_time += self.delta_time
-            
-            # Update input
-            self.input_manager.update()
-            
-            # Update current scene
-            if self.current_scene:
-                self.current_scene.update(self.delta_time)
-            
-            # Update game logic
-            self.update(self.delta_time)
-            
-            # Clear screen
-            self.window.clear()
-            
-            # Render current scene
-            if self.current_scene:
-                self.current_scene.render(self.renderer)
-            
-            # Custom rendering
-            self.render()
-            
-            # Update window
-            self.window.update()
-        
-        # Cleanup
-        self.cleanup()
-        if self.current_scene:
-            self.current_scene.cleanup()
-        self.window.quit()
+
+            while self.is_running and not self.window.should_close():
+                if self.next_scene:
+                    next_scene = self.next_scene
+                    self.next_scene = None
+                    if self.current_scene:
+                        self.current_scene.cleanup()
+                    self.current_scene = next_scene
+                    self.current_scene.initialize()
+
+                bounded_delta = self.window.delta_time
+                self.delta_time_samples.append(bounded_delta)
+
+                if len(self.delta_time_samples) > self.max_delta_samples:
+                    self.delta_time_samples.pop(0)
+
+                self.smoothed_delta_time = (
+                    sum(self.delta_time_samples) / len(self.delta_time_samples)
+                )
+                self.delta_time = self.smoothed_delta_time
+                self.total_time += self.delta_time
+
+                self.input_manager.update()
+
+                if self.current_scene:
+                    self.current_scene.update(self.delta_time)
+
+                self.update(self.delta_time)
+
+                self.window.clear()
+
+                if self.current_scene:
+                    self.current_scene.render(self.renderer)
+
+                self.render()
+                self.window.update()
+        finally:
+            self.is_running = False
+            try:
+                self.cleanup()
+            finally:
+                try:
+                    if self.current_scene:
+                        self.current_scene.cleanup()
+                finally:
+                    self.window.quit()
     
     def quit(self):
         """Quit the game"""

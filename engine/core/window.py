@@ -11,7 +11,18 @@ from ..math.vector2 import Vector2
 class Window:
     """Cross-platform window using tkinter"""
 
-    def __init__(self, title: str = "2D Game Engine", size: Tuple[int, int] = (800, 600)):
+    def __init__(
+        self,
+        title: str = "2D Game Engine",
+        size: Tuple[int, int] = (800, 600),
+        target_fps: int = 60,
+        max_delta_time: float = 0.1,
+    ):
+        if target_fps <= 0:
+            raise ValueError("target_fps must be greater than zero")
+        if max_delta_time <= 0:
+            raise ValueError("max_delta_time must be greater than zero")
+
         self.title = title
         self.size = Vector2(size[0], size[1])
         self.is_fullscreen = False
@@ -40,17 +51,18 @@ class Window:
         self.root.focus_set()
 
         # Frame timing
-        self.target_fps = 60
+        self.target_fps = target_fps
         self.frame_time = 1.0 / self.target_fps
-        self.last_time = time.time()
-        self.delta_time = 0.0
+        self.max_delta_time = max_delta_time
+        self.last_time = time.perf_counter()
+        self.raw_delta_time = self.frame_time
+        self.delta_time = self.frame_time
         self.actual_fps = 0.0
         self.frame_count = 0
         self.fps_timer = 0.0
 
         # VSync settings
         self.vsync_enabled = True
-        self.frame_skip_threshold = 0.1  # Skip frame if too much time has passed
 
         # Event callbacks
         self.key_press_callback: Optional[Callable] = None
@@ -113,39 +125,32 @@ class Window:
         self.mouse_callback = callback
 
     def update(self):
-        """Update window and process events"""
-        # Calculate delta time and FPS
-        current_time = time.time()
-        self.delta_time = current_time - self.last_time
-        self.last_time = current_time
-
-        # Update FPS counter
-        self.frame_count += 1
-        self.fps_timer += self.delta_time
-
-        if self.fps_timer >= 1.0:
-            self.actual_fps = self.frame_count / self.fps_timer
-            self.frame_count = 0
-            self.fps_timer = 0.0
-
-        # Process tkinter events
+        """Process events, limit the frame rate, and update frame timing"""
         try:
             self.root.update_idletasks()
             self.root.update()
         except tk.TclError:
             self._should_close = True
 
-        # Frame rate limiting with vsync control
         if self.vsync_enabled:
-            elapsed = time.time() - current_time
+            elapsed = time.perf_counter() - self.last_time
             sleep_time = self.frame_time - elapsed
-
-            # Only sleep if we have time left and it's not too long
-            if sleep_time > 0 and sleep_time < self.frame_skip_threshold:
+            if sleep_time > 0:
                 time.sleep(sleep_time)
-        else:
-            # Without vsync, just process as fast as possible
-            pass
+
+        current_time = time.perf_counter()
+        self.raw_delta_time = current_time - self.last_time
+        self.delta_time = min(self.raw_delta_time, self.max_delta_time)
+        self.last_time = current_time
+
+        # Keep FPS reporting based on real elapsed time, not the bounded game delta.
+        self.frame_count += 1
+        self.fps_timer += self.raw_delta_time
+
+        if self.fps_timer >= 1.0:
+            self.actual_fps = self.frame_count / self.fps_timer
+            self.frame_count = 0
+            self.fps_timer = 0.0
 
     def clear(self, color: str = '#141928'):
         """Clear the canvas with specified color"""
@@ -191,5 +196,5 @@ class Window:
         try:
             self.root.quit()
             self.root.destroy()
-        except:
+        except tk.TclError:
             pass

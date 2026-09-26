@@ -555,8 +555,8 @@ class CentipedeGame(GameEngine):
             
             print("Sound effects loaded successfully!")
             
-        except Exception as e:
-            print(f"Error loading sounds: {e}")
+        except (OSError, ValueError) as error:
+            print(f"Error loading sounds: {error}")
             self.sound_generator = None
     
     def initialize(self):

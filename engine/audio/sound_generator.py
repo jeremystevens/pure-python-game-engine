@@ -232,7 +232,7 @@ class SoundGenerator:
                 self.current_thread = threading.Thread(target=play_pattern, daemon=True)
                 self.current_thread.start()
 
-        except Exception:
+        except (OSError, RuntimeError):
             # Fallback: just print sound effect
             print(f"*{sound_name}*", end=' ', flush=True)
     

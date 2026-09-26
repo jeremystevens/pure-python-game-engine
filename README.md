@@ -12,7 +12,7 @@ This project proves that you can build sophisticated game engines without relyin
 - **Pure Python Implementation**: Zero external dependencies beyond Python standard library
 - **Cross-Platform**: Uses tkinter for universal compatibility across Windows, macOS, and Linux
 - **Game Engine Architecture**: Professional game engine design patterns and structure
-- **Fixed Timestep Game Loop**: Consistent physics and animation regardless of framerate
+- **Bounded Variable-Timestep Loop**: Responsive updates with smoothed, stall-safe delta time
 - **2D/3D Hybrid Support**: Optional 3D mathematics with 2D rendering capabilities
 
 ### Scene System
@@ -75,8 +75,12 @@ This project proves that you can build sophisticated game engines without relyin
 **No installation required!** This engine uses only Python's standard library.
 
 Requirements:
-- Python 3.7 or higher
+- Python 3.10 or higher (currently tested with Python 3.14)
 - tkinter (included with most Python installations)
+
+### Timing Model
+
+The engine uses a bounded variable timestep. `target_fps` controls frame-rate limiting, elapsed time is measured with `time.perf_counter()`, and unusually long frames are capped at `0.1` seconds by default before delta smoothing. Games can customize the cap with `GameEngine(..., max_delta_time=...)`.
 
 ## 🧪 Running Tests
 

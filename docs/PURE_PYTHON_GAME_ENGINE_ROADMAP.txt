@@ -32,10 +32,10 @@ Use the standard-library unittest framework initially. Focus on deterministic en
     • ECS entity creation, component queries, systems, and removal behavior.
     • Collision and geometry helpers that already exist.
 Graphical screenshot tests are intentionally deferred. The first tests should be quick, headless, portable, and useful during every engine change.
-3. Correct contained core inconsistencies
+3. Correct contained core inconsistencies — completed September 26, 2026
     • Pass GameEngine target_fps through to Window instead of always using 60 FPS.
     • Use time.perf_counter() for monotonic, high-resolution frame timing.
-    • Choose and document the timing model: fixed timestep, variable timestep, or fixed updates with interpolated rendering.
+    • Use and document a bounded variable timestep with delta smoothing and stall protection.
     • Make the README match the actual timing implementation; it currently claims a fixed timestep while the engine uses a smoothed variable delta.
     • Replace broad exception handlers with specific exceptions.
     • Define and test the supported Python version range.
