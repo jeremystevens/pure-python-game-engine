@@ -1,0 +1,103 @@
+﻿Pure Python Game Engine
+Development Roadmap and Restart Plan
+Prepared September 26, 2026
+
+Purpose
+This document records the agreed plan for returning to the project after an extended break. All included example games have been manually play-tested and currently work as expected. The immediate goal is therefore to preserve that working baseline, add safeguards, and improve the engine deliberately rather than beginning with another large feature or game.
+Current Baseline
+    • The main branch is synchronized with origin/main and has no modified source files.
+    • The latest code work added Breakout, Centipede, and Space Shooter in July 2025.
+    • The project contains 39 Python files and approximately 7,254 lines of Python.
+    • All Python files parse successfully under Python 3.14.7, and the engine package imports successfully.
+    • All example games have been manually tested and behave as expected.
+    • There are currently no automated tests.
+    • Generated __pycache__ directories and .pyc files are present in version control, and no .gitignore exists.
+Guiding Approach
+Do not rewrite working systems merely because alternative code exists. First create a clean, tested foundation. Make small changes, protect behavior with tests, and keep each milestone playable.
+Milestone 1: Establish a Stable Baseline
+1. Repository cleanup
+    • Add a .gitignore appropriate for Python projects.
+    • Remove tracked __pycache__ directories and .pyc files from version control.
+    • Keep the engine free of runtime dependencies outside the Python standard library.
+    • Add basic project metadata, likely through pyproject.toml.
+    • Create a known-good release tag, such as v0.1.0, after cleanup is complete and verified.
+2. Add headless automated tests
+Use the standard-library unittest framework initially. Focus on deterministic engine behavior that does not require opening a Tkinter window.
+    • Vector2 and Vector3 arithmetic, normalization, interpolation, and edge cases.
+    • Quaternion construction and rotation behavior.
+    • Local and world transforms, including parent-child relationships.
+    • Component addition, lookup, lifecycle callbacks, and destruction.
+    • Scene object addition, removal, updating, rendering order, and cleanup.
+    • Input pressed, held, released, and profile state transitions.
+    • ECS entity creation, component queries, systems, and removal behavior.
+    • Collision and geometry helpers that already exist.
+Graphical screenshot tests are intentionally deferred. The first tests should be quick, headless, portable, and useful during every engine change.
+3. Correct contained core inconsistencies
+    • Pass GameEngine target_fps through to Window instead of always using 60 FPS.
+    • Use time.perf_counter() for monotonic, high-resolution frame timing.
+    • Choose and document the timing model: fixed timestep, variable timestep, or fixed updates with interpolated rendering.
+    • Make the README match the actual timing implementation; it currently claims a fixed timestep while the engine uses a smoothed variable delta.
+    • Replace broad exception handlers with specific exceptions.
+    • Define and test the supported Python version range.
+    • Verify lifecycle ordering during initialization, scene transitions, shutdown, and exceptional exits.
+Milestone 2: Clarify the Engine Architecture
+The project currently contains two overlapping object models: the Scene/GameObject/component model used by the working games, and a separate World/entity/ECS model. Before expanding both, choose their long-term relationship.
+Option A: Keep GameObject as the primary API (recommended)
+    • Continue using the architecture already proven by the example games.
+    • Treat the ECS as experimental until there is a concrete need for it.
+    • Improve scenes, components, collisions, prefabs, and object lifecycle first.
+    • Optimize only after profiling demonstrates a real bottleneck.
+Option B: Make ECS the engine core
+    • Integrate rendering, transforms, input, and collision as ECS systems.
+    • Port one small game, preferably Breakout, as the reference implementation.
+    • Maintain compatibility while gradually migrating other games.
+Option C: Build a deliberate hybrid
+    • Keep GameObject as a friendly public facade backed internally by ECS entities and components.
+    • Only choose this approach when its added complexity solves a specific problem.
+Current recommendation: choose Option A. The existing GameObject model already works across several games, so it should be strengthened before considering a migration or hybrid abstraction.
+Milestone 3: High-Value Engine Capabilities
+1. Reusable collision system
+    • Circle, rectangle, and point colliders.
+    • AABB and circle intersection tests.
+    • Collision layers and masks.
+    • Collision enter, stay, and exit callbacks.
+    • Optional spatial hashing for broad-phase detection after profiling.
+A shared collision system should replace duplicated collision logic in individual games and make the engine substantially easier to use.
+2. Asset and animation system
+    • Central image and asset cache.
+    • Sprite-sheet and texture-atlas support.
+    • Reusable animation clips and frame timing.
+    • Consistent asset paths and graceful missing-asset behavior.
+3. Scene-management improvements
+    • Named scene registry.
+    • Pause and resume support.
+    • Scene stacking for menus, dialogs, and overlays.
+    • Deferred object addition and removal during iteration.
+    • Persistent objects across scene changes.
+    • Clearly documented lifecycle callbacks and ordering.
+4. Development and debugging tools
+    • Decide whether to complete hot reload or remove the empty placeholder files.
+    • Add a debug overlay for FPS, frame time, object count, and other useful statistics.
+    • Add collider visualization.
+    • Add runtime logging controls and object inspection.
+    • Add lightweight profiling and slow-frame warnings.
+Known Items to Revisit
+    • engine/core/hot_reload.py is empty.
+    • example_hot_reload_demo.py is empty.
+    • Logging and ECS code exist but are not exposed through the main engine package API.
+    • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
+    • The README contains claims that should be verified against the implementation, including fixed timestep, object pooling, and spatial partitioning.
+Recommended Work Order
+    1. Repository cleanup and stable release tag.
+    2. Automated tests for non-graphical systems.
+    3. Timing and lifecycle corrections.
+    4. A documented decision about GameObject versus ECS.
+    5. Reusable collision system.
+    6. Asset and animation improvements.
+    7. Debugging tools and a decision on hot reload.
+    8. README and API documentation updates.
+    9. Another game only after the improved foundations can be exercised by it.
+First Working Session
+Clean the repository, establish the unittest test structure, and add initial tests for Vector2, Vector3, transforms, and scene/component lifecycle without changing game behavior.
+Long-Term Direction to Decide
+Determine whether the project is primarily an educational game-engine experiment, a polished reusable Python package, or a foundation for creating more games. That decision will guide how much effort goes into architecture, packaging, compatibility, tools, documentation, and editor-like features.
