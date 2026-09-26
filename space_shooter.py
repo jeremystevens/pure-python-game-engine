@@ -52,6 +52,11 @@ class ScrollingBackground(GameObject):
 class Player(GameObject):
     """Player spacecraft"""
 
+    # Power-up durations, shared by activate_power_up() and the HUD readout
+    SPEED_BOOST_DURATION = 8.0
+    RAPID_FIRE_DURATION = 10.0
+    SHIELD_DURATION = 15.0
+
     def __init__(self):
         super().__init__("Player")
         self.speed = 300.0
@@ -178,11 +183,11 @@ class Player(GameObject):
             self.health = min(self.max_health, self.health + 50)
         elif power_type == "speed":
             self.speed = 450.0
-            self.speed_boost_timer = 8.0
+            self.speed_boost_timer = self.SPEED_BOOST_DURATION
         elif power_type == "weapon":
-            self.rapid_fire_timer = 10.0
+            self.rapid_fire_timer = self.RAPID_FIRE_DURATION
         elif power_type == "shield":
-            self.shield_timer = 15.0
+            self.shield_timer = self.SHIELD_DURATION
             self.has_shield = True
 
     def render(self, renderer):
@@ -642,9 +647,9 @@ class SpaceShooterGame(GameEngine):
             player_shoot.generate_sweep(800, 400, 0.08, 'square', 0.4)
             self.sound_generator.register_sound(player_shoot)
 
-            # Enemy shooting sound - lower pitched
+            # Enemy shooting sound - lower, slower, grittier descending laser
             enemy_shoot = Sound("enemy_shoot")
-            enemy_shoot.generate_tone(250, 0.12, 'square', 0.3)
+            enemy_shoot.generate_sweep(350, 150, 0.14, 'sawtooth', 0.35)
             self.sound_generator.register_sound(enemy_shoot)
 
             # Explosion sound for destroyed ships
@@ -828,6 +833,9 @@ class SpaceShooterGame(GameEngine):
 
         self.renderer.draw_text(Vector2(760, 30), f"Health", '#FFFFFF', 14)
 
+        # Active power-up indicators
+        self._draw_powerup_status()
+
         if self.game_over:
             self.renderer.draw_text(Vector2(400, 250), "GAME OVER", '#FF0000',
                                     36, 'center')
@@ -839,6 +847,44 @@ class SpaceShooterGame(GameEngine):
                                     '#FFFFFF', 16, 'center')
             self.renderer.draw_text(Vector2(400, 400), "Press 'R' to restart",
                                     '#FFFF00', 18, 'center')
+
+    def _draw_powerup_status(self):
+        """Draw a status readout for each currently active power-up effect"""
+        active_effects = []
+        if self.player.speed_boost_timer > 0:
+            active_effects.append(
+                ("SPEED BOOST", self.player.speed_boost_timer,
+                 self.player.SPEED_BOOST_DURATION, '#FFFF00'))
+        if self.player.rapid_fire_timer > 0:
+            active_effects.append(
+                ("RAPID FIRE", self.player.rapid_fire_timer,
+                 self.player.RAPID_FIRE_DURATION, '#FF00FF'))
+        if self.player.shield_timer > 0:
+            active_effects.append(
+                ("SHIELD", self.player.shield_timer,
+                 self.player.SHIELD_DURATION, '#00FFFF'))
+
+        if not active_effects:
+            return
+
+        x = 20
+        bar_width = 100
+        bar_height = 6
+
+        for i, (label, remaining, duration, color) in enumerate(active_effects):
+            y = 55 + i * 20
+
+            self.renderer.draw_text(Vector2(x, y), f"{label}: {remaining:.1f}s",
+                                    color, 12, 'w')
+
+            bar_y = y + 10
+            self.renderer.draw_rectangle(Vector2(x + bar_width / 2, bar_y),
+                                         Vector2(bar_width, bar_height), '#444444')
+
+            filled_width = bar_width * max(0.0, min(1.0, remaining / duration))
+            if filled_width > 0:
+                self.renderer.draw_rectangle(Vector2(x + filled_width / 2, bar_y),
+                                             Vector2(filled_width, bar_height), color)
 
 
 if __name__ == "__main__":

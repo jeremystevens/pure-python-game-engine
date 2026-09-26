@@ -18,10 +18,28 @@ class Sound:
         self.samples: List[float] = []
         self.sample_rate = 22050
         self.duration = 0.0
-        
+
+        # Generation metadata, used by SoundGenerator to pick a playback pattern
+        self.wave_type: Optional[str] = None
+        self.base_frequency: Optional[float] = None
+        self.start_freq: Optional[float] = None
+        self.end_freq: Optional[float] = None
+        self.is_noise = False
+        self.is_continuous = False
+
+    def average_frequency(self) -> float:
+        """Estimate a representative frequency for this sound based on how it was generated"""
+        if self.start_freq is not None and self.end_freq is not None:
+            return (self.start_freq + self.end_freq) / 2
+        if self.base_frequency is not None:
+            return self.base_frequency
+        return 0.0
+
     def generate_tone(self, frequency: float, duration: float, wave_type: str = 'sine', amplitude: float = 0.5):
         """Generate a basic tone"""
         self.duration = duration
+        self.wave_type = wave_type
+        self.base_frequency = frequency
         num_samples = int(self.sample_rate * duration)
         self.samples = []
         
@@ -47,6 +65,9 @@ class Sound:
     def generate_sweep(self, start_freq: float, end_freq: float, duration: float, wave_type: str = 'sine', amplitude: float = 0.5):
         """Generate a frequency sweep (good for laser sounds)"""
         self.duration = duration
+        self.wave_type = wave_type
+        self.start_freq = start_freq
+        self.end_freq = end_freq
         num_samples = int(self.sample_rate * duration)
         self.samples = []
         
@@ -59,6 +80,10 @@ class Sound:
                 sample = amplitude * math.sin(2 * math.pi * frequency * t)
             elif wave_type == 'square':
                 sample = amplitude * (1 if math.sin(2 * math.pi * frequency * t) > 0 else -1)
+            elif wave_type == 'sawtooth':
+                sample = amplitude * (2 * (t * frequency - math.floor(t * frequency + 0.5)))
+            elif wave_type == 'triangle':
+                sample = amplitude * (2 * abs(2 * (t * frequency - math.floor(t * frequency + 0.5))) - 1)
             else:
                 sample = amplitude * math.sin(2 * math.pi * frequency * t)
                 
@@ -74,6 +99,7 @@ class Sound:
     def generate_explosion(self, duration: float = 0.5, amplitude: float = 0.3):
         """Generate explosion sound using filtered noise"""
         self.duration = duration
+        self.is_noise = True
         num_samples = int(self.sample_rate * duration)
         self.samples = []
         
@@ -99,6 +125,8 @@ class Sound:
     def generate_engine(self, base_freq: float = 80, duration: float = 0.2, amplitude: float = 0.2):
         """Generate engine/thrust sound"""
         self.duration = duration
+        self.is_continuous = True
+        self.base_frequency = base_freq
         num_samples = int(self.sample_rate * duration)
         self.samples = []
         
@@ -165,34 +193,46 @@ class SoundGenerator:
         self.sounds[sound.name] = sound
     
     def play_sound(self, sound_name: str):
-        """Play a registered sound (simplified playback using system beep)"""
+        """Play a registered sound (simplified playback using system beep).
+
+        The terminal bell can't reproduce actual pitch, so distinct sounds are
+        approximated using the beep rhythm/count and a console tag derived
+        from how the sound was generated (noise, continuous, or average
+        frequency), instead of a fixed per-name whitelist.
+        """
         if sound_name not in self.sounds:
             return
-            
-        # Since we can't easily play custom audio without external libraries,
-        # we'll use the system bell/beep and vary the pattern for different sounds
+
+        sound = self.sounds[sound_name]
+
         try:
-            import tkinter as tk
-            
             def play_pattern():
-                if sound_name == "bullet":
-                    # Quick high beep
-                    print('\a', end='', flush=True)
-                elif sound_name == "explosion":
-                    # Longer, multiple beeps
+                if sound.is_noise:
+                    # Explosion-style: sharp burst of beeps
                     for _ in range(3):
                         print('\a', end='', flush=True)
                         time.sleep(0.05)
-                elif sound_name == "engine":
-                    # Short beep
+                elif sound.is_continuous:
+                    # Engine/hum: single sustained beep
                     print('\a', end='', flush=True)
-            
+                else:
+                    avg_freq = sound.average_frequency()
+                    if avg_freq >= 400:
+                        # Bright, high-pitched zap (e.g. a player laser)
+                        print('\a', end='', flush=True)
+                    else:
+                        # Duller, lower-pitched shot (e.g. an enemy laser) -
+                        # a short pre-delay gives it a heavier feel since the
+                        # bell itself can't change pitch
+                        time.sleep(0.03)
+                        print('\a', end='', flush=True)
+
             # Play in separate thread to avoid blocking
             if self.current_thread is None or not self.current_thread.is_alive():
                 self.current_thread = threading.Thread(target=play_pattern, daemon=True)
                 self.current_thread.start()
-                
-        except Exception as e:
+
+        except Exception:
             # Fallback: just print sound effect
             print(f"*{sound_name}*", end=' ', flush=True)
     
