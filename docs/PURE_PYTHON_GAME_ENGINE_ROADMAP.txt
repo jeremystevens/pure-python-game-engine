@@ -56,13 +56,13 @@ Option C: Build a deliberate hybrid
     • Only choose this approach when its added complexity solves a specific problem.
 Decision: Option A accepted. GameObject/components are the primary supported architecture; ECS remains an explicitly imported experimental subsystem.
 Milestone 3: High-Value Engine Capabilities
-1. Reusable collision system
+1. Reusable collision system — completed September 26, 2026
     • Circle, rectangle, and point colliders.
     • AABB and circle intersection tests.
     • Collision layers and masks.
     • Collision enter, stay, and exit callbacks.
-    • Optional spatial hashing for broad-phase detection after profiling.
-A shared collision system should replace duplicated collision logic in individual games and make the engine substantially easier to use.
+    • Optional spatial hashing for broad-phase detection remains deferred until profiling demonstrates a need.
+The shared collision system is integrated with scenes, documented, and exercised by Breakout as its first complete reference game.
 2. Asset and animation system
     • Central image and asset cache.
     • Sprite-sheet and texture-atlas support.
@@ -86,13 +86,12 @@ Known Items to Revisit
     • examples/demos/hot_reload.py is empty.
     • Logging is not exposed through the main engine package API; ECS is intentionally available only through its experimental subpackage.
     • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
-    • The README claims about object pooling and spatial partitioning still need verification against the implementation.
 Recommended Work Order
     1. Repository cleanup and stable release tag.
     2. Automated tests for non-graphical systems.
     3. Timing and lifecycle corrections.
     4. A documented decision about GameObject versus ECS. (Completed)
-    5. Reusable collision system.
+    5. Reusable collision system. (Completed)
     6. Asset and animation improvements.
     7. Debugging tools and a decision on hot reload.
     8. README and API documentation updates.

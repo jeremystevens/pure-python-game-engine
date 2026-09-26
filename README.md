@@ -27,7 +27,7 @@ This project proves that you can build sophisticated game engines without relyin
 - **Transform System**: 2D/3D position, rotation, and scale with parent-child relationships
 - **Quaternion Support**: 3D rotation support with quaternion mathematics (optional 3D mode)
 - **Advanced Math**: Dot product, cross product, interpolation, and coordinate transformations
-- **Collision Detection**: Point-in-shape and basic collision detection
+- **Collision Geometry**: Point, circle, and axis-aligned rectangle intersection queries
 
 ### Graphics Rendering
 - **Custom 2D Renderer**: Built on tkinter Canvas with advanced drawing capabilities
@@ -55,6 +55,7 @@ This project proves that you can build sophisticated game engines without relyin
 .
 ├── engine/                  # Game engine package
 │   ├── audio/               # Procedural sound generation
+│   ├── collision/           # Collider components and overlap detection
 │   ├── core/                # Main loop, window, and logging
 │   ├── ecs/                 # Experimental Entity Component System
 │   ├── graphics/            # Canvas renderer and sprites
@@ -162,6 +163,7 @@ The examples demonstrate:
 - Real-time FPS display
 - Component-based architecture
 - Transform hierarchies
+- Scene-managed collision events in Breakout
 - **Procedural audio generation**
 - Complete game state management
 
@@ -211,6 +213,19 @@ child.transform.position = Vector2(50, 0)  # 50 units to the right of parent
 child.transform.enable_3d()
 child.transform.quaternion_rotation = Quaternion.from_axis_angle(Vector3.up(), math.pi/4)
 ```
+
+### Collision System
+
+Scenes automatically detect contacts between `CircleCollider` and `AABBCollider` components. Layers and masks filter pairs, while enter, stay, and exit callbacks let games define their own responses:
+
+```python
+from engine import CircleCollider
+
+collider = player.add_component(CircleCollider(radius=12))
+collider.on_enter(lambda other: print(f"Hit {other.game_object.name}"))
+```
+
+See [`docs/COLLISION.md`](docs/COLLISION.md) for geometry queries, layer configuration, lifecycle behavior, and current limitations. Breakout is the first complete reference game using the system.
 
 ### Pure Python Rendering
 Custom 2D renderer built on tkinter Canvas:
@@ -319,12 +334,14 @@ This project demonstrates several important concepts:
 
 ## 🚀 Performance Considerations
 
-While this engine prioritizes education and simplicity over raw performance, it includes several optimizations:
+This engine prioritizes education and simplicity over speculative optimization. Current safeguards include:
 
-- **Efficient Vector Operations**: Optimized mathematical operations
-- **Object Pooling**: Reuse game objects to reduce garbage collection
-- **Spatial Partitioning**: Scene management optimized for large numbers of objects
-- **Frame Rate Control**: Consistent timing regardless of system performance
+- **Bounded Frame Timing**: Prevents large simulation jumps after stalls
+- **Squared-Distance Geometry**: Avoids square roots where only overlap is needed
+- **Collision Layer Filtering**: Rejects disallowed pairs before geometry tests
+- **Snapshot-Safe Updates**: Allows callbacks to add or destroy objects safely
+
+Collision broad-phase detection currently checks collider pairs directly. Object pooling and spatial partitioning are intentionally deferred until profiling demonstrates a need.
 
 ## 🎓 Learning Outcomes
 

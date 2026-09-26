@@ -4,8 +4,20 @@ Built using the Pure Python 2D Game Engine
 """
 import math
 import random
-from engine import GameEngine, GameObject, Vector2, Sprite, SoundGenerator
-from engine.scene.game_object import Component
+from engine import (
+    AABBCollider,
+    CircleCollider,
+    GameEngine,
+    GameObject,
+    SoundGenerator,
+    Sprite,
+    Vector2,
+)
+
+
+BALL_LAYER = 1 << 0
+PADDLE_LAYER = 1 << 1
+BRICK_LAYER = 1 << 2
 
 
 class Ball(GameObject):
@@ -20,12 +32,22 @@ class Ball(GameObject):
         # White square ball (Atari 2600 style)
         sprite = Sprite(color='#FFFFFF', size=Vector2(8, 8))
         self.add_component(sprite)
+        self.collider = self.add_component(
+            CircleCollider(
+                self.radius,
+                layer=BALL_LAYER,
+                mask=PADDLE_LAYER | BRICK_LAYER,
+            )
+        )
+        self.collider.on_enter(self._on_collision)
+        self.collision_resolved = False
         
         # Start position
         self.transform.position = Vector2(400, 500)
     
     def update(self, delta_time: float):
         super().update(delta_time)
+        self.collision_resolved = False
         
         # Move ball
         self.transform.position += self.velocity * delta_time
@@ -54,6 +76,11 @@ class Ball(GameObject):
         # Bottom - ball is lost (don't reset here, let main game handle it)
         # The main game loop will detect this and handle life reduction
     
+    def _on_collision(self, other):
+        """Delegate collision response to the current Breakout game."""
+        if hasattr(self.scene, 'engine'):
+            self.scene.engine.handle_ball_collision(self, other.game_object)
+
     def reset_ball(self):
         """Reset ball to starting position"""
         self.transform.position = Vector2(400, 500)
@@ -90,6 +117,13 @@ class Paddle(GameObject):
         # Orange paddle (Atari 2600 color)
         sprite = Sprite(color='#FF8C00', size=Vector2(self.width, self.height))
         self.add_component(sprite)
+        self.add_component(
+            AABBCollider(
+                Vector2(self.width, self.height),
+                layer=PADDLE_LAYER,
+                mask=BALL_LAYER,
+            )
+        )
         
         # Starting position
         self.transform.position = Vector2(400, 550)
@@ -130,6 +164,13 @@ class Brick(GameObject):
         
         sprite = Sprite(color=color, size=Vector2(self.width, self.height))
         self.add_component(sprite)
+        self.add_component(
+            AABBCollider(
+                Vector2(self.width, self.height),
+                layer=BRICK_LAYER,
+                mask=BALL_LAYER,
+            )
+        )
         
         self.transform.position = Vector2(x, y)
     
@@ -286,6 +327,46 @@ class BreakoutGame(GameEngine):
                 self.bricks.append(brick)
                 self.current_scene.add_object(brick)
     
+    def handle_ball_collision(self, ball, other):
+        """Apply Breakout-specific responses to engine collision events."""
+        if self.game_state != "playing" or ball.collision_resolved:
+            return
+
+        if other is self.paddle:
+            if ball.velocity.y <= 0:
+                return
+            ball.collision_resolved = True
+            ball.bounce_off_paddle(
+                self.paddle.transform.position,
+                self.paddle.width,
+            )
+            self.sound_generator.play_sound("paddle_hit")
+            print("*paddle hit*")
+            return
+
+        if not isinstance(other, Brick) or other not in self.bricks:
+            return
+
+        ball.collision_resolved = True
+        points = other.hit()
+        self.score += points
+
+        if points >= 7:
+            self.sound_generator.play_sound("high_brick")
+            print(f"*high brick hit* +{points} points")
+        elif points >= 5:
+            self.sound_generator.play_sound("mid_brick")
+            print(f"*mid brick hit* +{points} points")
+        else:
+            self.sound_generator.play_sound("low_brick")
+            print(f"*low brick hit* +{points} points")
+
+        self.bricks.remove(other)
+        other.destroy()
+        self.current_scene.remove_object(other)
+        ball.velocity.y = -ball.velocity.y
+        ball.velocity *= 1.02
+
     def update(self, delta_time: float):
         """Game update logic"""
         super().update(delta_time)
@@ -295,63 +376,6 @@ class BreakoutGame(GameEngine):
         
         if self.game_state != "playing":
             return
-        
-        # Ball-paddle collision
-        if self.ball and self.paddle:
-            ball_pos = self.ball.transform.position
-            paddle_pos = self.paddle.transform.position
-            
-            # Check collision with paddle
-            if (ball_pos.y + self.ball.radius > paddle_pos.y - self.paddle.height/2 and
-                ball_pos.y - self.ball.radius < paddle_pos.y + self.paddle.height/2 and
-                ball_pos.x > paddle_pos.x - self.paddle.width/2 and
-                ball_pos.x < paddle_pos.x + self.paddle.width/2 and
-                self.ball.velocity.y > 0):  # Ball moving down
-                
-                self.ball.bounce_off_paddle(paddle_pos, self.paddle.width)
-                # Play paddle hit sound
-                self.sound_generator.play_sound("paddle_hit")
-                print("*paddle hit*")  # Visual feedback
-        
-        # Ball-brick collisions
-        if self.ball:
-            ball_pos = self.ball.transform.position
-            
-            for brick in self.bricks[:]:  # Copy list to avoid modification during iteration
-                brick_pos = brick.transform.position
-                
-                # Simple AABB collision detection
-                if (ball_pos.x + self.ball.radius > brick_pos.x - brick.width/2 and
-                    ball_pos.x - self.ball.radius < brick_pos.x + brick.width/2 and
-                    ball_pos.y + self.ball.radius > brick_pos.y - brick.height/2 and
-                    ball_pos.y - self.ball.radius < brick_pos.y + brick.height/2):
-                    
-                    # Remove brick and play appropriate sound
-                    points = brick.hit()
-                    self.score += points
-                    
-                    # Play sound based on brick value (Atari 2600 style)
-                    if points >= 7:  # Red/Orange bricks
-                        self.sound_generator.play_sound("high_brick")
-                        print(f"*high brick hit* +{points} points")
-                    elif points >= 5:  # Yellow/Green bricks
-                        self.sound_generator.play_sound("mid_brick")
-                        print(f"*mid brick hit* +{points} points")
-                    else:  # Blue/Purple/Pink bricks
-                        self.sound_generator.play_sound("low_brick")
-                        print(f"*low brick hit* +{points} points")
-                    
-                    self.bricks.remove(brick)
-                    brick.destroy()
-                    self.current_scene.remove_object(brick)
-                    
-                    # Bounce ball (simplified - just reverse Y velocity)
-                    self.ball.velocity.y = -self.ball.velocity.y
-                    
-                    # Increase ball speed slightly (Atari 2600 behavior)
-                    self.ball.velocity *= 1.02
-                    
-                    break
         
         # Check for ball lost
         if self.ball and self.ball.transform.position.y > 600:
