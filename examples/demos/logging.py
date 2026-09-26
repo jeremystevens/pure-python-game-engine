@@ -2,7 +2,8 @@
 """
 Example demonstrating the logging system
 """
-from engine import GameEngine, GameObject, Vector2, Sprite, Scene, get_logger, LogLevel, set_global_log_level
+from engine import GameEngine, GameObject, Scene, Sprite, Vector2
+from engine.core.logger import LogLevel, get_logger, set_global_log_level
 
 
 class LoggingTestObject(GameObject):

@@ -52,32 +52,22 @@ This project proves that you can build sophisticated game engines without relyin
 ## 🏗️ Project Structure
 
 ```
-engine/
-├── __init__.py              # Main engine exports
-├── core/
-│   ├── __init__.py
-│   ├── engine.py           # Main GameEngine class
-│   └── window.py           # Cross-platform window management
-├── scene/
-│   ├── __init__.py
-│   ├── scene.py            # Scene management
-│   └── game_object.py      # GameObject and Component classes
-├── math/
-│   ├── __init__.py
-│   ├── vector2.py          # 2D vector mathematics
-│   ├── vector3.py          # 3D vector mathematics
-│   ├── quaternion.py       # 3D rotation quaternions
-│   └── transform.py        # 2D/3D transform component
-├── graphics/
-│   ├── __init__.py
-│   ├── renderer.py         # 2D rendering system
-│   └── sprite.py           # Sprite rendering component
-├── input/
-│   ├── __init__.py
-│   └── input_manager.py     # Input handling system
-└── audio/
-    ├── __init__.py
-    └── sound_generator.py   # Procedural sound generation
+.
+├── engine/                  # Game engine package
+│   ├── audio/               # Procedural sound generation
+│   ├── core/                # Main loop, window, and logging
+│   ├── ecs/                 # Entity Component System implementation
+│   ├── graphics/            # Canvas renderer and sprites
+│   ├── input/               # Keyboard, mouse, and input profiles
+│   ├── math/                # Vectors, transforms, and quaternions
+│   └── scene/               # Scenes, game objects, and components
+├── examples/
+│   ├── games/               # Complete playable games
+│   └── demos/               # Focused engine feature demonstrations
+├── tests/                   # Headless standard-library test suite
+├── docs/                    # Project roadmap and supporting documents
+├── README.md
+└── LICENSE
 ```
 
 ## 🚀 Installation
@@ -129,35 +119,38 @@ game = MyGame("My 2D Game", (800, 600))
 game.run()
 ```
 
-## 🎯 Example Games
+## 🎯 Examples
 
-### Basic Example Game
-Run the included example game to see the engine in action:
+Run examples as modules from the repository root so Python can locate the sibling `engine` package.
 
-```bash
-python example_game.py
-```
-
-### Asteroids Game (1980s Arcade Classic)
-Experience a complete retro game implementation:
+### Complete Games
 
 ```bash
-python asteroids_game.py
+python -m examples.games.asteroids_game
+python -m examples.games.breakout_game
+python -m examples.games.centipede_game
+python -m examples.games.space_shooter
+python -m examples.games.ui_game
 ```
 
-#### Controls:
+### Focused Demos
+
+```bash
+python -m examples.demos.basic_game
+python -m examples.demos.atlas
+python -m examples.demos.ecs
+python -m examples.demos.input_profiles
+python -m examples.demos.logging
+```
+
+`examples/demos/hot_reload.py` is reserved for the unfinished hot-reload demonstration.
+
+### Asteroids Controls
+
 - **Left/Right or A/D**: Rotate ship
 - **Up or W**: Thrust
 - **Space or Ctrl**: Shoot
 - **ESC**: Quit game
-
-#### Features:
-- Classic triangular ship with realistic physics
-- Asteroids that split when shot
-- Screen wrapping mechanics
-- Wave progression system
-- Procedural sound effects (bullets, explosions, engine thrust)
-- Score and lives system
 
 The examples demonstrate:
 - Player movement with keyboard input

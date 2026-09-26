@@ -83,7 +83,7 @@ A shared collision system should replace duplicated collision logic in individua
     • Add lightweight profiling and slow-frame warnings.
 Known Items to Revisit
     • engine/core/hot_reload.py is empty.
-    • example_hot_reload_demo.py is empty.
+    • examples/demos/hot_reload.py is empty.
     • Logging and ECS code exist but are not exposed through the main engine package API.
     • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
     • The README contains claims that should be verified against the implementation, including fixed timestep, object pooling, and spatial partitioning.

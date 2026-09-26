@@ -2,12 +2,17 @@
 """
 Example demonstrating the ECS (Entity Component System) architecture
 """
-from engine import (
-    GameEngine, Vector2,
-    World, Entity,
-    TransformComponent, VelocityComponent, SpriteComponent, HealthComponent, TagComponent,
-    MovementSystem, RenderSystem, HealthSystem, BoundarySystem
+from engine import GameEngine, Vector2
+from engine.ecs.components import (
+    HealthComponent,
+    SpriteComponent,
+    TagComponent,
+    TransformComponent,
+    VelocityComponent,
 )
+from engine.ecs.entity import Entity
+from engine.ecs.systems import BoundarySystem, HealthSystem, MovementSystem, RenderSystem
+from engine.ecs.world import World
 import random
 import math
 
