@@ -124,6 +124,7 @@ class InputManager:
         self.frame_key_presses: Set[str] = set()
         self.frame_key_releases: Set[str] = set()
         self.frame_mouse_clicks: Set[int] = set()
+        self.frame_mouse_releases: Set[int] = set()
         
         # Input event callbacks
         self.input_callbacks: Dict[str, Callable] = {}
@@ -138,21 +139,20 @@ class InputManager:
         self.keys_just_pressed = self.frame_key_presses.copy()
         self.keys_just_released = self.frame_key_releases.copy()
         self.mouse_buttons_just_pressed = self.frame_mouse_clicks.copy()
-
-        # Calculate just released mouse buttons
-        self.mouse_buttons_just_released = self.previous_mouse_buttons - self.mouse_buttons_pressed
+        self.mouse_buttons_just_released = self.frame_mouse_releases.copy()
 
         # Update gamepad states
         for gamepad in self.gamepads.values():
-            gamepad.previous_buttons = gamepad.buttons_pressed.copy()
             # In a real implementation, you would poll the actual gamepad here
-            # For now, we'll simulate gamepad updates
+            # before comparing the current state with the previous frame.
             self._update_gamepad_state(gamepad)
+            gamepad.previous_buttons = gamepad.buttons_pressed.copy()
 
         # Clear frame-specific events
         self.frame_key_presses.clear()
         self.frame_key_releases.clear()
         self.frame_mouse_clicks.clear()
+        self.frame_mouse_releases.clear()
 
     def on_key_press(self, keysym: str, keycode: int):
         """Handle key press events from window"""
@@ -179,6 +179,7 @@ class InputManager:
         elif event_type == 'release':
             if button in self.mouse_buttons_pressed:
                 self.mouse_buttons_pressed.remove(button)
+                self.frame_mouse_releases.add(button)
 
     # Keyboard methods
     def is_key_pressed(self, key: str) -> bool:
@@ -360,6 +361,23 @@ class InputManager:
         except ValueError:
             return False
     
+    def is_gamepad_button_just_released(self, button: str, gamepad_id: int = 0) -> bool:
+        """Check if a gamepad button was just released this frame"""
+        if not self.is_gamepad_connected(gamepad_id):
+            return False
+
+        gamepad = self.gamepads[gamepad_id]
+
+        for btn_id, btn_name in gamepad.button_names.items():
+            if btn_name == button.lower():
+                return btn_id in gamepad.buttons_just_released
+
+        try:
+            button_id = int(button)
+            return button_id in gamepad.buttons_just_released
+        except ValueError:
+            return False
+
     def get_gamepad_stick(self, stick: str, gamepad_id: int = 0) -> Vector2:
         """Get gamepad analog stick value"""
         if not self.is_gamepad_connected(gamepad_id):
@@ -518,6 +536,23 @@ class InputManager:
         except ValueError:
             pass
     
+    def simulate_gamepad_button_release(self, button: str, gamepad_id: int = 0):
+        """Simulate releasing a gamepad button (for testing)"""
+        if not self.is_gamepad_connected(gamepad_id):
+            return
+
+        gamepad = self.gamepads[gamepad_id]
+        for btn_id, btn_name in gamepad.button_names.items():
+            if btn_name == button.lower():
+                gamepad.buttons_pressed.discard(btn_id)
+                return
+
+        try:
+            button_id = int(button)
+            gamepad.buttons_pressed.discard(button_id)
+        except ValueError:
+            pass
+
     def simulate_gamepad_stick_input(self, stick: str, x: float, y: float, gamepad_id: int = 0):
         """Simulate gamepad stick input (for testing)"""
         if not self.is_gamepad_connected(gamepad_id):

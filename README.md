@@ -88,6 +88,14 @@ Requirements:
 - Python 3.7 or higher
 - tkinter (included with most Python installations)
 
+## 🧪 Running Tests
+
+The headless test suite uses Python's standard-library `unittest` framework and does not open a game window:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## 🎮 Quick Start
 
 ```python
