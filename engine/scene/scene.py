@@ -3,6 +3,7 @@ Scene class for managing game objects and game state
 """
 from typing import List, Dict, Optional, Any
 from .game_object import GameObject
+from ..collision.system import CollisionSystem
 from ..graphics.renderer import Renderer
 
 
@@ -16,6 +17,7 @@ class Scene:
         self.objects_by_tag: Dict[str, List[GameObject]] = {}
         self.is_active = True
         self.data: Dict[str, Any] = {}  # For storing scene-specific data
+        self.collision_system = CollisionSystem(self)
         
     def initialize(self):
         """Initialize the scene"""
@@ -77,7 +79,9 @@ class Scene:
         for obj in self.game_objects.copy():
             if obj.is_active:
                 obj.update(delta_time)
-        
+
+        self.collision_system.update()
+
         # Remove destroyed objects
         self._cleanup_destroyed_objects()
     
@@ -104,6 +108,7 @@ class Scene:
     
     def cleanup(self):
         """Cleanup the scene"""
+        self.collision_system.clear()
         for obj in self.game_objects.copy():
             obj.destroy()
         self.game_objects.clear()
