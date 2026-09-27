@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pure-python-game-engine"
+version = "0.1.0"
+description = "A 2D game engine built entirely from Python's standard library, with no external runtime dependencies."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Jeremy Stevens" }]
+requires-python = ">=3.10"
+# Deliberately empty: the engine has zero runtime dependencies beyond the
+# standard library (tkinter for windowing and rendering).
+dependencies = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Games/Entertainment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Repository = "https://github.com/jeremystevens/pure-python-game-engine"
+
+[tool.setuptools.packages.find]
+include = ["engine*"]

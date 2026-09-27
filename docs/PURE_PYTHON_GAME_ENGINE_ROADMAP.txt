@@ -15,13 +15,14 @@ Current Baseline
 Guiding Approach
 Do not rewrite working systems merely because alternative code exists. First create a clean, tested foundation. Make small changes, protect behavior with tests, and keep each milestone playable.
 Milestone 1: Establish a Stable Baseline
-1. Repository cleanup
+1. Repository cleanup — completed September 26, 2026
     • Add a .gitignore appropriate for Python projects.
     • Remove tracked __pycache__ directories and .pyc files from version control.
     • Keep the engine free of runtime dependencies outside the Python standard library.
     • Add basic project metadata, likely through pyproject.toml.
     • Create a known-good release tag, such as v0.1.0, after cleanup is complete and verified.
-2. Add headless automated tests
+pyproject.toml declares the package metadata (MIT license, Python 3.10+, zero runtime dependencies) and was verified by building and installing it into a clean virtual environment. The LICENSE file previously contained the full GNU AGPLv3 text while the README claimed MIT; LICENSE now contains the actual MIT text to match. Tagged v0.1.0.
+2. Add headless automated tests — completed September 26, 2026
 Use the standard-library unittest framework initially. Focus on deterministic engine behavior that does not require opening a Tkinter window.
     • Vector2 and Vector3 arithmetic, normalization, interpolation, and edge cases.
     • Quaternion construction and rotation behavior.
@@ -31,6 +32,7 @@ Use the standard-library unittest framework initially. Focus on deterministic en
     • Input pressed, held, released, and profile state transitions.
     • ECS entity creation, component queries, systems, and removal behavior.
     • Collision and geometry helpers that already exist.
+174 tests now cover these areas across tests/, run with `python -m unittest discover -s tests`.
 Graphical screenshot tests are intentionally deferred. The first tests should be quick, headless, portable, and useful during every engine change.
 3. Correct contained core inconsistencies — completed September 26, 2026
     • Pass GameEngine target_fps through to Window instead of always using 60 FPS.
@@ -89,9 +91,9 @@ Known Items to Revisit
     • Logging is not exposed through the main engine package API; ECS is intentionally available only through its experimental subpackage.
     • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
 Recommended Work Order
-    1. Repository cleanup and stable release tag.
-    2. Automated tests for non-graphical systems.
-    3. Timing and lifecycle corrections.
+    1. Repository cleanup and stable release tag. (Completed)
+    2. Automated tests for non-graphical systems. (Completed)
+    3. Timing and lifecycle corrections. (Completed)
     4. A documented decision about GameObject versus ECS. (Completed)
     5. Reusable collision system. (Completed)
     6. Asset and animation improvements. (Completed)
