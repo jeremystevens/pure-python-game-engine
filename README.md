@@ -144,6 +144,7 @@ Run examples as modules from the repository root so Python can locate the siblin
 python -m examples.games.asteroids_game
 python -m examples.games.breakout_game
 python -m examples.games.centipede_game
+python -m examples.games.lane_crosser
 python -m examples.games.space_shooter
 python -m examples.games.ui_game
 ```
@@ -176,6 +177,18 @@ The examples demonstrate:
 - Scene-managed collision events in Breakout
 - **Procedural audio generation**
 - Complete game state management
+
+## 📸 Showcase
+
+### Lane Crosser
+
+A frogger-style lane-dodging game built entirely on the engine's Scene/GameObject/Component system.
+
+![Lane Crosser gameplay](screenshots/screenshot1.png)
+
+```bash
+python -m examples.games.lane_crosser
+```
 
 ## 🔧 Architecture Overview
 
