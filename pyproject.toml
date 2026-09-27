@@ -27,6 +27,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[project.optional-dependencies]
+# Real audio playback. Without this extra, SoundGenerator.play_sound()
+# falls back to a terminal-bell approximation -- see docs/AUDIO.md for why
+# the standard library can't do real cross-platform playback on its own.
+audio = ["miniaudio>=1.60"]
+
 [project.urls]
 Repository = "https://github.com/jeremystevens/pure-python-game-engine"
 

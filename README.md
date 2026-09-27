@@ -45,10 +45,10 @@ This project proves that you can build sophisticated game engines without relyin
 - **Event-Driven**: Proper event handling with frame-accurate input detection
 
 ### Audio System
-- **Procedural Sound Generation**: Real waveform sample generation — sine, square, sawtooth, triangle, and noise
+- **Procedural Sound Generation**: Real waveform sample generation — sine, square, sawtooth, triangle, and noise, using only the standard library
 - **Sound Effects**: Built-in generators for bullets, explosions, and engine sounds
-- **No External Dependencies**: Audio system built entirely with Python standard library
-- **Terminal-Bell Playback**: Approximates distinct sounds by rhythm and timing, not actual audio output — see [`docs/AUDIO.md`](docs/AUDIO.md) for why and what that means in practice
+- **Real Playback (Optional)**: Install the `audio` extra (`pip install pure-python-game-engine[audio]`) for actual real-time mixed audio output; the core engine still requires nothing beyond it
+- **Terminal-Bell Fallback**: Without the extra, or without a usable audio device, distinct sounds are approximated by rhythm and timing instead of real playback — see [`docs/AUDIO.md`](docs/AUDIO.md) for why and what that means in practice
 
 ### Assets and Animation
 - **Central Image Cache**: Canonical path resolution and identity reuse
@@ -88,6 +88,8 @@ This project proves that you can build sophisticated game engines without relyin
 Requirements:
 - Python 3.10 or higher (currently tested with Python 3.14)
 - tkinter (included with most Python installations)
+
+**Optional:** `pip install pure-python-game-engine[audio]` adds real audio playback (see [Audio System](#audio-system) below). Nothing else in the engine ever requires it.
 
 ### Timing Model
 
@@ -312,7 +314,7 @@ laser = Sound('laser')
 laser.generate_sweep(800, 200, 0.1, 'square', 0.3)
 ```
 
-Those samples are never actually sent to an audio output device, though — there's no cross-platform way to do that from the standard library alone. Playback is approximated with the terminal bell (`\a`), timed and repeated based on each sound's generation metadata (noise, continuous, or average frequency) rather than truly reproducing its pitch. See [`docs/AUDIO.md`](docs/AUDIO.md) for exactly what that means and why.
+By default those samples are never actually sent to an audio output device — there's no cross-platform way to do that from the standard library alone. Install the optional `audio` extra (`pip install pure-python-game-engine[audio]`) and `SoundGenerator` automatically opens a real, mixed-audio playback device instead, with zero code changes to any existing game. Without it, playback is approximated with the terminal bell (`\a`), timed and repeated based on each sound's generation metadata (noise, continuous, or average frequency) rather than truly reproducing its pitch. Run `python -m examples.games.asteroids_game` with the extra installed to hear the difference — its engine hum, bullet laser, and explosion sounds all use this system. See [`docs/AUDIO.md`](docs/AUDIO.md) for exactly what that means and why.
 
 ### Pure Python Rendering
 Custom 2D renderer built on tkinter Canvas:

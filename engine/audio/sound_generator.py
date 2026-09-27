@@ -9,6 +9,8 @@ import time
 from typing import List, Optional
 import tkinter as tk
 
+from .playback import RealAudioBackend
+
 
 class Sound:
     """Represents a procedurally generated sound effect"""
@@ -165,10 +167,36 @@ class SoundGenerator:
         self.sounds = {}
         self.playing = False
         self.current_thread = None
-        
+
         # Try to use system beep as fallback
         self.has_audio = True
-        
+
+        # Optional real playback backend (see docs/AUDIO.md). None whenever
+        # it can't be built -- miniaudio isn't installed, or no usable audio
+        # device exists (routine on headless machines) -- in which case
+        # play_sound() falls back to the terminal-bell approximation below.
+        self._backend: Optional[RealAudioBackend] = None
+        try:
+            self._backend = RealAudioBackend(sample_rate=22050)
+        except Exception:
+            self._backend = None
+
+    @property
+    def real_audio_enabled(self) -> bool:
+        """Whether sounds are actually reaching a real audio device."""
+        return self._backend is not None
+
+    def shutdown(self):
+        """Release the real audio device, if one was opened.
+
+        Safe to call even when no real backend exists. Call this from your
+        game's ``cleanup()`` for deterministic teardown instead of relying
+        on garbage collection to close the device eventually.
+        """
+        if self._backend is not None:
+            self._backend.close()
+            self._backend = None
+
     def create_bullet_sound(self) -> Sound:
         """Create a laser bullet sound effect"""
         sound = Sound("bullet")
@@ -193,17 +221,25 @@ class SoundGenerator:
         self.sounds[sound.name] = sound
     
     def play_sound(self, sound_name: str):
-        """Play a registered sound (simplified playback using system beep).
+        """Play a registered sound through a real device, or approximate it.
 
-        The terminal bell can't reproduce actual pitch, so distinct sounds are
-        approximated using the beep rhythm/count and a console tag derived
-        from how the sound was generated (noise, continuous, or average
-        frequency), instead of a fixed per-name whitelist.
+        If the optional ``miniaudio`` dependency is installed and a real
+        audio device is available, this sends the sound's actual waveform
+        samples to it -- distinct sounds genuinely sound distinct. Otherwise
+        it falls back to the terminal bell (`\\a`), which can't reproduce
+        pitch at all: distinct sounds are approximated only by beep
+        rhythm/count, derived from how the sound was generated (noise,
+        continuous, or average frequency) rather than a fixed per-name
+        whitelist. See ``docs/AUDIO.md`` for the full picture.
         """
         if sound_name not in self.sounds:
             return
 
         sound = self.sounds[sound_name]
+
+        if self._backend is not None:
+            self._backend.play(sound.samples)
+            return
 
         try:
             def play_pattern():

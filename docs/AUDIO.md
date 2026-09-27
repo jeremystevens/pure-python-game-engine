@@ -1,6 +1,6 @@
 # Procedural Audio
 
-The engine generates real audio waveform data from mathematical formulas — no sound files, no external libraries. What it does *not* do is play that data as actual sound. This document explains both halves honestly, since the gap between them is easy to miss.
+The engine generates real audio waveform data from mathematical formulas — no sound files, no external libraries. Whether that data reaches your speakers as actual sound depends on one optional third-party package. This document explains both halves honestly, since the gap between them is easy to miss.
 
 ## Waveform Generation (real)
 
@@ -27,11 +27,26 @@ Each generator also records how the sound was made — `wave_type`, `base_freque
 laser.average_frequency()  # (800 + 200) / 2 == 500.0
 ```
 
-## Playback (approximated, not real audio)
+## Playback: two paths, chosen automatically
 
-There is no cross-platform way to send arbitrary PCM samples to an audio output device using only the Python standard library — no stdlib module opens a sound card on Windows, macOS, and Linux alike. `winsound` exists but is Windows-only; everything else would mean shelling out to a platform-specific player binary, which this engine deliberately avoids to stay dependency-free.
+There is no cross-platform way to send arbitrary PCM samples to an audio output device using only the Python standard library — no stdlib module opens a sound card on Windows, macOS, and Linux alike. `winsound` exists but is Windows-only; `ossaudiodev` could do it on Linux but was removed from the standard library in Python 3.13; nothing has ever existed for macOS. Reaching real speakers on all three platforms genuinely requires code outside the standard library — there's no clever workaround for that, only the choice of whether to accept the dependency.
 
-So `SoundGenerator.play_sound()` doesn't play the samples at all. It triggers the terminal bell (`\a`) instead, in a background thread, with a rhythm chosen from the sound's generation metadata:
+So the engine offers both, and picks automatically:
+
+- **With the optional `audio` extra installed** (`pip install pure-python-game-engine[audio]`, which pulls in [`miniaudio`](https://github.com/irmen/pyminiaudio)), `SoundGenerator` opens a real playback device and sends each sound's actual waveform samples to it. Distinct sounds genuinely sound distinct — a laser sweep sounds like a laser sweep, an explosion sounds like noise, an engine hum sounds like a hum. Multiple overlapping sounds (rapid-fire bullets, an explosion during an engine hum) are mixed together in real time rather than cutting each other off.
+- **Without it**, or on a machine with no usable audio hardware at all (routine in CI and headless environments — `miniaudio` itself may be installed and still fail to find a device), `SoundGenerator` falls back to the terminal-bell approximation described below. Nothing breaks either way; `play_sound()` has the identical signature and behavior from the caller's perspective in both cases.
+
+Check which path is active with `sound_generator.real_audio_enabled` (`True`/`False`). Run `python -m examples.games.asteroids_game` with the extra installed to hear the difference directly — its engine hum, bullet laser, and explosion sounds all use the built-in trio described below.
+
+`SoundGenerator.shutdown()` releases the real device deterministically; call it from your game's `cleanup()` rather than relying on garbage collection to close it eventually.
+
+### Why an optional dependency, not a required one
+
+Making real audio a *hard* dependency would contradict the engine's core promise — zero required dependencies beyond the standard library, so `pip install pure-python-game-engine` always works standalone. Making it an *optional* one keeps that promise fully intact for anyone who doesn't need real sound, while still letting anyone who does get it with one extra pip argument, instead of being stuck with the terminal bell forever. [`miniaudio`](https://pypi.org/project/miniaudio/) was chosen specifically because it's self-contained on all three target platforms — unlike some alternatives (e.g. `sounddevice`, which wraps PortAudio), it doesn't additionally require a separate system library to already be installed on Linux.
+
+### The terminal-bell fallback
+
+When no real backend is available, `SoundGenerator.play_sound()` triggers the terminal bell (`\a`) in a background thread instead, with a rhythm chosen from the sound's generation metadata:
 
 ```python
 sound = self.sounds[sound_name]
@@ -63,7 +78,7 @@ sound_gen.play_sound("bullet")
 
 ## Current Scope
 
-- No real audio output. If you need actual sound, this engine cannot provide it without stepping outside the standard library.
-- Playback differentiation is limited to timing/rhythm; pitch, timbre, and volume are not reproduced.
+- Real audio output requires the optional `audio` extra (`pip install pure-python-game-engine[audio]`); without it, or without a usable audio device, playback differentiation is limited to timing/rhythm — pitch, timbre, and volume are not reproduced.
+- The real-audio mixer sums overlapping sounds and clips at full scale rather than doing any loudness normalization — many sounds firing at once can sound harsh rather than automatically balanced.
 - `generate_sweep()`'s `'noise'` wave type isn't implemented (only `generate_tone()` supports it) — passing it to `generate_sweep()` silently falls back to sine.
 - `SoundGenerator.generate_frequency_beep()` exists but is unused by any game or demo in this repository.
