@@ -14,6 +14,7 @@ EXAMPLE_MODULES = (
     'examples.demos.hot_reload',
     'examples.demos.input_profiles',
     'examples.demos.logging',
+    'examples.demos.scene_management',
 )
 
 

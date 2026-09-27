@@ -109,10 +109,16 @@ New methods, all backed by the same `SceneManager`:
 
 ## Reference Implementation
 
-`examples/games/ui_game.py` is the reference implementation: `MenuScene`, `GameScene`, and `GameOverScene` are registered by name, and a `PauseScene` demonstrates the stack — pressing Escape during gameplay pushes a pause overlay (gameplay visibly freezes underneath it), and either button on the overlay pops it or replaces the whole stack back to the menu.
+`examples/games/ui_game.py` is the full-game reference: `MenuScene`, `GameScene`, and `GameOverScene` are registered by name, and a `PauseScene` demonstrates the stack — pressing Escape during gameplay pushes a pause overlay (gameplay visibly freezes underneath it), and either button on the overlay pops it or replaces the whole stack back to the menu.
 
 ```bash
 python -m examples.games.ui_game
+```
+
+For a smaller, focused demonstration of just the scene-management API — named registry, replace, push/pop, and a persistent object transferred across every scene change — see `examples/demos/scene_management.py`:
+
+```bash
+python -m examples.demos.scene_management
 ```
 
 ## Current Scope

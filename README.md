@@ -156,6 +156,7 @@ python -m examples.demos.atlas
 python -m examples.demos.ecs
 python -m examples.demos.input_profiles
 python -m examples.demos.logging
+python -m examples.demos.scene_management
 ```
 
 `examples/demos/hot_reload.py` is reserved for the unfinished hot-reload demonstration.
