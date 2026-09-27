@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 from engine.core.engine import GameEngine
 from engine.core.window import Window
+from engine.scene.scene import Scene
 
 
 class FakeRoot:
@@ -179,9 +180,9 @@ class FakeInputManager:
         self.log.append('input.update')
 
 
-class FakeScene:
+class FakeScene(Scene):
     def __init__(self, name, log):
-        self.name = name
+        super().__init__(name)
         self.log = log
 
     def initialize(self):
@@ -289,6 +290,17 @@ class GameEngineLifecycleTests(unittest.TestCase):
         self.assertAlmostEqual(engine.delta_time, 0.02)
         self.assertAlmostEqual(engine.total_time, 0.02)
         self.assertFalse(engine.is_running)
+
+    def test_current_scene_survives_shutdown_for_post_run_inspection(self):
+        log = []
+        engine, _, _ = self.create_engine(log)
+        scene = FakeScene('scene', log)
+        engine.current_scene = scene
+
+        engine.run()
+
+        self.assertIs(engine.current_scene, scene)
+        self.assertEqual(engine.scene_manager.stack_depth, 0)
 
     def test_cleanup_runs_when_initialize_raises(self):
         log = []

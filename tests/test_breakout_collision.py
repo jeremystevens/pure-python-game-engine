@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from engine.math.vector2 import Vector2
 from engine.scene.scene import Scene
+from engine.scene.scene_manager import SceneManager
 from examples.games.breakout_game import Ball, BreakoutGame, Brick, Paddle
 
 
@@ -27,8 +28,8 @@ class BreakoutCollisionIntegrationTests(unittest.TestCase):
         game.bricks = []
         game.paddle = None
         game.sound_generator = RecordingSoundGenerator()
-        game.current_scene = Scene('Breakout Test')
-        game.current_scene.engine = game
+        scene = Scene('Breakout Test')
+        game.scene_manager = SceneManager(game, scene)
         return game
 
     def test_ball_uses_engine_collision_to_bounce_from_paddle(self):

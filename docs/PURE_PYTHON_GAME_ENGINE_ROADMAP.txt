@@ -69,13 +69,14 @@ The shared collision system is integrated with scenes, documented, and exercised
     • Reusable animation clips and frame timing.
     • Consistent asset paths and graceful missing-asset behavior.
 The system now provides cached Tkinter images, lazy sprite-sheet extraction, reusable clips with independent playback, documentation, and a real PNG demo asset.
-3. Scene-management improvements
+3. Scene-management improvements — completed September 26, 2026
     • Named scene registry.
     • Pause and resume support.
     • Scene stacking for menus, dialogs, and overlays.
     • Deferred object addition and removal during iteration.
     • Persistent objects across scene changes.
     • Clearly documented lifecycle callbacks and ordering.
+A SceneManager now provides the registry and stack on top of the existing Scene lifecycle. current_scene and load_scene(scene) still work unmodified, so existing games needed no changes; examples/games/ui_game.py is the reference implementation, including a pushed PauseScene overlay. Documented in docs/SCENE_MANAGEMENT.md.
 4. Development and debugging tools
     • Decide whether to complete hot reload or remove the empty placeholder files.
     • Add a debug overlay for FPS, frame time, object count, and other useful statistics.
@@ -94,9 +95,10 @@ Recommended Work Order
     4. A documented decision about GameObject versus ECS. (Completed)
     5. Reusable collision system. (Completed)
     6. Asset and animation improvements. (Completed)
-    7. Debugging tools and a decision on hot reload.
-    8. README and API documentation updates.
-    9. Another game only after the improved foundations can be exercised by it.
+    7. Scene-management improvements. (Completed)
+    8. Debugging tools and a decision on hot reload.
+    9. README and API documentation updates.
+    10. Another game only after the improved foundations can be exercised by it.
 First Working Session
 Clean the repository, establish the unittest test structure, and add initial tests for Vector2, Vector3, transforms, and scene/component lifecycle without changing game behavior.
 Long-Term Direction to Decide

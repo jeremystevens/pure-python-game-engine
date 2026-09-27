@@ -5,6 +5,7 @@ from typing import Optional
 from .window import Window
 from ..assets.asset_manager import AssetManager
 from ..scene.scene import Scene
+from ..scene.scene_manager import SceneManager
 from ..input.input_manager import InputManager
 from ..graphics.renderer import Renderer
 
@@ -39,9 +40,9 @@ class GameEngine:
         self.window.set_mouse_callback(self.input_manager.on_mouse_event)
         
         # Scene management
-        self.current_scene: Optional[Scene] = Scene("Default")
-        self.next_scene: Optional[Scene] = None
-        
+        self.scene_manager = SceneManager(self, Scene("Default"))
+        self._last_scene: Optional[Scene] = None
+
         # Engine state
         self.delta_time = 0.0
         self.total_time = 0.0
@@ -51,6 +52,21 @@ class GameEngine:
         self.max_delta_samples = 10
         self.smoothed_delta_time = 0.0
         
+    @property
+    def current_scene(self) -> Optional[Scene]:
+        """Return the top of the scene stack, or the last active scene once
+        the stack has been fully cleared (for example, after shutdown)."""
+        scene = self.scene_manager.current_scene
+        if scene is not None:
+            self._last_scene = scene
+            return scene
+        return self._last_scene
+
+    @current_scene.setter
+    def current_scene(self, scene: Scene):
+        """Preserve direct pre-run scene assignment for compatibility."""
+        self.scene_manager.set_initial(scene)
+
     def initialize(self):
         """Override this method to initialize your game"""
         pass
@@ -67,9 +83,21 @@ class GameEngine:
         """Override this method for cleanup"""
         pass
     
-    def load_scene(self, scene: Scene):
-        """Load a new scene"""
-        self.next_scene = scene
+    def register_scene(self, name: str, provider, replace: bool = False):
+        """Register a named scene instance or factory."""
+        self.scene_manager.register(name, provider, replace)
+
+    def load_scene(self, scene):
+        """Queue replacement of the current scene by instance or name."""
+        self.scene_manager.replace(scene)
+
+    def push_scene(self, scene):
+        """Queue an overlay scene by instance or registered name."""
+        self.scene_manager.push(scene)
+
+    def pop_scene(self):
+        """Queue removal of the current overlay scene."""
+        self.scene_manager.pop()
     
     def run(self):
         """Run the bounded variable-timestep game loop"""
@@ -77,18 +105,11 @@ class GameEngine:
 
         try:
             self.initialize()
-
-            if self.current_scene:
-                self.current_scene.initialize()
+            self.scene_manager.process_pending()
+            self.scene_manager.initialize_current()
 
             while self.is_running and not self.window.should_close():
-                if self.next_scene:
-                    next_scene = self.next_scene
-                    self.next_scene = None
-                    if self.current_scene:
-                        self.current_scene.cleanup()
-                    self.current_scene = next_scene
-                    self.current_scene.initialize()
+                self.scene_manager.process_pending()
 
                 bounded_delta = self.window.delta_time
                 self.delta_time_samples.append(bounded_delta)
@@ -104,15 +125,13 @@ class GameEngine:
 
                 self.input_manager.update()
 
-                if self.current_scene:
-                    self.current_scene.update(self.delta_time)
+                self.scene_manager.update(self.delta_time)
 
                 self.update(self.delta_time)
 
                 self.window.clear()
 
-                if self.current_scene:
-                    self.current_scene.render(self.renderer)
+                self.scene_manager.render(self.renderer)
 
                 self.render()
                 self.window.update()
@@ -122,8 +141,8 @@ class GameEngine:
                 self.cleanup()
             finally:
                 try:
-                    if self.current_scene:
-                        self.current_scene.cleanup()
+                    self._last_scene = self.scene_manager.current_scene
+                    self.scene_manager.clear()
                 finally:
                     try:
                         self.asset_manager.clear()

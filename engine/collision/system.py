@@ -59,7 +59,11 @@ class CollisionSystem:
     def _collect_colliders(self) -> List[Collider]:
         colliders = []
         for game_object in tuple(self.scene.game_objects):
-            if not game_object.is_active or game_object.is_destroyed:
+            if (
+                not game_object.is_active
+                or game_object.is_destroyed
+                or self.scene.is_object_pending_removal(game_object)
+            ):
                 continue
             for component in tuple(game_object.components_list):
                 if isinstance(component, Collider) and component.is_active:

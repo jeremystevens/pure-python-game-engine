@@ -70,14 +70,19 @@ class GameObjectTests(unittest.TestCase):
         self.assertIs(game_object.get_component(RecordingComponent), second)
         self.assertEqual(game_object.components_list, [second])
 
-    def test_component_added_to_scene_object_starts_immediately(self):
+    def test_components_start_with_object_and_late_components_start_immediately(self):
         scene = Scene()
         game_object = GameObject()
         scene.add_object(game_object)
 
-        component = game_object.add_component(RecordingComponent())
+        initial = game_object.add_component(RecordingComponent())
+        self.assertEqual(initial.start_count, 0)
 
-        self.assertEqual(component.start_count, 1)
+        scene.initialize()
+        late = game_object.add_component(OtherRecordingComponent())
+
+        self.assertEqual(initial.start_count, 1)
+        self.assertEqual(late.start_count, 1)
 
     def test_object_start_update_and_render_delegate_to_active_components(self):
         game_object = GameObject()

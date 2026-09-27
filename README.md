@@ -16,7 +16,9 @@ This project proves that you can build sophisticated game engines without relyin
 - **2D/3D Hybrid Support**: Optional 3D mathematics with 2D rendering capabilities
 
 ### Scene System
-- **Scene Management**: Organize game objects into scenes with lifecycle management
+- **Scene Management**: Organize game objects into scenes with deterministic lifecycle callbacks
+- **Named Scene Registry & Stacking**: Register scenes by name and stack overlays for pause menus and dialogs
+- **Persistent Objects**: Carry selected objects safely across scene replacements
 - **GameObject Architecture**: Component-based game objects with transform hierarchy
 - **Component System**: Modular components for extending game object functionality
 - **Object Pooling**: Efficient memory management for game objects
@@ -69,7 +71,7 @@ This project proves that you can build sophisticated game engines without relyin
 │   ├── graphics/            # Canvas renderer and sprites
 │   ├── input/               # Keyboard, mouse, and input profiles
 │   ├── math/                # Vectors, transforms, and quaternions
-│   └── scene/               # Scenes, game objects, and components
+│   └── scene/               # Scenes, GameObjects, components, and the SceneManager
 ├── examples/
 │   ├── games/               # Complete playable games
 │   └── demos/               # Focused engine feature demonstrations
@@ -252,6 +254,20 @@ collider.on_enter(lambda other: print(f"Hit {other.game_object.name}"))
 
 See [`docs/COLLISION.md`](docs/COLLISION.md) for geometry queries, layer configuration, lifecycle behavior, and current limitations. Breakout is the first complete reference game using the system.
 
+### Scene Management
+
+A `SceneManager` gives every `GameEngine` a named scene registry and a scene stack, on top of the existing `Scene` lifecycle (deferred object mutation, pause/resume, persistent objects across replacements):
+
+```python
+self.register_scene('menu', MenuScene)
+self.register_scene('game', GameScene)
+self.load_scene('menu')       # replace the current scene
+self.push_scene('pause')      # stack a paused overlay on top
+self.pop_scene()              # remove the overlay, resume what's beneath
+```
+
+`current_scene` and `load_scene(scene)` still work exactly as before, so no existing game needed changes. See [`docs/SCENE_MANAGEMENT.md`](docs/SCENE_MANAGEMENT.md) for lifecycle ordering, stack semantics, and persistent-object rules. `examples/games/ui_game.py` is the reference implementation, including a pushed `PauseScene`.
+
 ### Pure Python Rendering
 Custom 2D renderer built on tkinter Canvas:
 
@@ -337,15 +353,21 @@ sound_gen.play_sound("explosion")
 ```
 
 ### Scene Management
-Organize your game into scenes for different states:
+Organize your game into named scenes, with stacked overlays for menus and pause screens:
 
 ```python
-menu_scene = Scene("Menu")
-game_scene = Scene("Game")
+self.register_scene("menu", MenuScene)
+self.register_scene("game", GameScene)
 
-# Switch between scenes
-engine.load_scene(game_scene)
+# Switch between scenes by name
+self.load_scene("game")
+
+# Or stack an overlay without tearing down what's underneath
+self.push_scene("pause")
+self.pop_scene()
 ```
+
+See [`docs/SCENE_MANAGEMENT.md`](docs/SCENE_MANAGEMENT.md) for the full lifecycle, stack semantics, and persistent-object rules.
 
 ## 🎯 Why Pure Python?
 

@@ -16,6 +16,7 @@ class Component:
     def __init__(self):
         self.game_object: Optional['GameObject'] = None
         self.is_active = True
+        self._is_started = False
     
     def start(self):
         """Called when the component is first added"""
@@ -33,6 +34,13 @@ class Component:
         """Called when the component is destroyed"""
         pass
 
+    def _ensure_started(self) -> bool:
+        if self._is_started:
+            return False
+        self._is_started = True
+        self.start()
+        return True
+
 
 class GameObject:
     """Base game object class"""
@@ -41,6 +49,8 @@ class GameObject:
         self.name = name
         self.is_active = True
         self.is_destroyed = False
+        self.is_persistent = False
+        self._is_started = False
         self.z_order = 0  # Render order (higher values render on top)
         self.tags: List[str] = []
         
@@ -58,9 +68,24 @@ class GameObject:
         self.data: Dict[str, Any] = {}
     
     def start(self):
-        """Called when the object is first created"""
-        for component in self.components_list:
-            component.start()
+        """Start this object and its components exactly once."""
+        self._ensure_started()
+
+    def on_start(self):
+        """Override to initialize custom GameObject behavior."""
+        pass
+
+    def _ensure_started(self) -> bool:
+        if self._is_started:
+            return False
+        self._is_started = True
+        if type(self).start is GameObject.start:
+            self.on_start()
+        else:
+            self.start()
+        for component in tuple(self.components_list):
+            component._ensure_started()
+        return True
     
     def update(self, delta_time: float):
         """Update the game object and all its components"""
@@ -93,9 +118,9 @@ class GameObject:
         self.components_list.append(component)
         component.game_object = self
         
-        # Initialize if object is already started
-        if self.scene:
-            component.start()
+        # Initialize components added after this object has started.
+        if self._is_started:
+            component._ensure_started()
         
         return component
     
@@ -155,6 +180,7 @@ class GameObject:
         # Destroy all components
         for component in self.components_list.copy():
             component.destroy()
+            component.game_object = None
         
         self.components.clear()
         self.components_list.clear()
@@ -162,6 +188,10 @@ class GameObject:
     def set_active(self, active: bool):
         """Set the active state of the object"""
         self.is_active = active
+
+    def set_persistent(self, persistent: bool = True):
+        """Choose whether this object survives scene replacement."""
+        self.is_persistent = persistent
     
     def set_position(self, position: Vector2):
         """Set the position of the object"""

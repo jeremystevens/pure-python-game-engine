@@ -269,9 +269,8 @@ class MenuScene(Scene):
     def __init__(self):
         super().__init__("Menu")
         
-    def initialize(self):
-        super().initialize()
-        
+    def on_initialize(self):
+        """Build the main menu when this fresh scene is initialized."""
         # Title
         title = UIElement("Title")
         title.text = "SPACE DEFENSE"
@@ -299,8 +298,7 @@ class MenuScene(Scene):
         # Start button
         def start_game():
             if hasattr(self, 'engine') and self.engine:
-                game_scene = GameScene()
-                self.engine.load_scene(game_scene)
+                self.engine.load_scene('game')
             else:
                 print("Error: Engine reference not found")
         
@@ -319,9 +317,8 @@ class GameScene(Scene):
         self.wave_timer = 0.0
         self.game_time = 0.0
         
-    def initialize(self):
-        super().initialize()
-        
+    def on_initialize(self):
+        """Build a fresh gameplay scene."""
         # Create particle system
         particle_system = ParticleSystem("Particles")
         self.add_object(particle_system)
@@ -374,8 +371,12 @@ class GameScene(Scene):
         player = self.find_object("Player")
         if player and player.health <= 0:
             if hasattr(self, 'engine'):
-                game_over_scene = GameOverScene(player.score, self.game_time)
-                self.engine.load_scene(game_over_scene)
+                self.engine.register_scene(
+                    'game_over',
+                    lambda: GameOverScene(player.score, self.game_time),
+                    replace=True,
+                )
+                self.engine.load_scene('game_over')
             return
         
         # Check for wave completion
@@ -431,9 +432,8 @@ class GameOverScene(Scene):
         self.final_score = final_score
         self.survival_time = survival_time
     
-    def initialize(self):
-        super().initialize()
-        
+    def on_initialize(self):
+        """Build the game-over scene from its captured results."""
         # Game Over title
         title = UIElement("GameOverTitle")
         title.text = "GAME OVER"
@@ -461,8 +461,7 @@ class GameOverScene(Scene):
         # Restart button
         def restart_game():
             if hasattr(self, 'engine'):
-                game_scene = GameScene()
-                self.engine.load_scene(game_scene)
+                self.engine.load_scene('game')
         
         restart_button = Button("RestartButton", "PLAY AGAIN", restart_game)
         restart_button.transform.position = Vector2(300, 400)
@@ -471,59 +470,76 @@ class GameOverScene(Scene):
         # Menu button
         def return_to_menu():
             if hasattr(self, 'engine'):
-                menu_scene = MenuScene()  
-                self.engine.load_scene(menu_scene)
+                self.engine.load_scene('menu')
         
         menu_button = Button("MenuButton", "MAIN MENU", return_to_menu)
         menu_button.transform.position = Vector2(500, 400)
         self.add_object(menu_button)
 
 
+class PauseScene(Scene):
+    """Stacked overlay that pauses gameplay while it remains visible."""
+
+    def __init__(self):
+        super().__init__("Pause")
+
+    def on_initialize(self):
+        title = UIElement("PauseTitle")
+        title.text = "PAUSED"
+        title.font_size = 36
+        title.color = '#FFFF00'
+        title.transform.position = Vector2(400, 220)
+        self.add_object(title)
+
+        def resume_game():
+            self.engine.pop_scene()
+
+        resume_button = Button("ResumeButton", "RESUME", resume_game)
+        resume_button.transform.position = Vector2(400, 320)
+        self.add_object(resume_button)
+
+        def return_to_menu():
+            self.engine.pop_scene()
+            self.engine.load_scene('menu')
+
+        menu_button = Button("PauseMenuButton", "MAIN MENU", return_to_menu)
+        menu_button.transform.position = Vector2(400, 390)
+        self.add_object(menu_button)
+
+
 class CompleteGame(GameEngine):
-    """Complete game with multiple scenes"""
-    
+    """Complete game demonstrating named scenes and stacked pause overlays."""
+
     def initialize(self):
-        """Initialize the game with menu scene"""
-        menu_scene = MenuScene()
-        menu_scene.engine = self  # Give scene access to engine
-        self.load_scene(menu_scene)
-        
+        self.register_scene('menu', MenuScene)
+        self.register_scene('game', GameScene)
+        self.register_scene('pause', PauseScene)
+        self.load_scene('menu')
+
         print("Space Defense - Complete Game")
-        print("Starting at main menu...")
-    
+        print("Named scenes enabled; press ESC during play to pause")
+
     def update(self, delta_time: float):
-        """Game update logic"""
-        # Global controls
+        """Handle global controls without bypassing scene lifecycle."""
         if self.input_manager.is_key_just_pressed('escape'):
-            # Return to menu or quit
-            if self.current_scene.name != "Menu":
-                menu_scene = MenuScene()
-                menu_scene.engine = self
-                self.load_scene(menu_scene)
-            else:
+            scene_name = self.current_scene.name if self.current_scene else ""
+            if scene_name == "Menu":
                 self.quit()
-        
+            elif scene_name == "Game":
+                self.push_scene('pause')
+            elif scene_name == "Pause":
+                self.pop_scene()
+            else:
+                self.load_scene('menu')
+
         if self.input_manager.is_key_just_pressed('f11'):
             self.toggle_fullscreen()
-        
-        # Update window title with scene info
+
         fps = self.get_fps()
         scene_name = self.current_scene.name if self.current_scene else "None"
-        self.window.set_title(f"Space Defense - {scene_name} - FPS: {fps:.1f}")
-    
-    def load_scene(self, scene):
-        """Load a new scene"""
-        if self.current_scene:
-            self.current_scene.cleanup()
-        
-        self.current_scene = scene
-        scene.engine = self  # Give scene access to engine
-        scene.initialize()
-        
-        # Ensure all objects in the scene have access to the engine
-        for obj in scene.game_objects:
-            if hasattr(obj, 'scene'):
-                obj.scene = scene
+        self.window.set_title(
+            f"Space Defense - {scene_name} - FPS: {fps:.1f}"
+        )
 
 
 if __name__ == "__main__":

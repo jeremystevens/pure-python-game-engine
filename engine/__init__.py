@@ -6,6 +6,7 @@ A complete 2D game engine built entirely in Python using only standard library
 from .core.engine import GameEngine
 from .core.window import Window
 from .scene.scene import Scene
+from .scene.scene_manager import SceneManager
 from .scene.game_object import Component, GameObject
 from .math.vector2 import Vector2
 from .math.vector3 import Vector3
@@ -27,6 +28,7 @@ __all__ = [
     'GameEngine',
     'Window', 
     'Scene',
+    'SceneManager',
     'GameObject',
     'Component',
     'Vector2',
