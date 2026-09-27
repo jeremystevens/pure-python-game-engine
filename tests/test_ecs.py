@@ -1,8 +1,10 @@
 import unittest
+from unittest.mock import MagicMock
 
 from engine.ecs.component import Component
 from engine.ecs.components import (
     HealthComponent,
+    SpriteComponent,
     TagComponent,
     TimerComponent,
     TransformComponent,
@@ -10,7 +12,13 @@ from engine.ecs.components import (
 )
 from engine.ecs.entity import EntityManager
 from engine.ecs.system import System, SystemManager
-from engine.ecs.systems import BoundarySystem, HealthSystem, MovementSystem, TimerSystem
+from engine.ecs.systems import (
+    BoundarySystem,
+    HealthSystem,
+    MovementSystem,
+    RenderSystem,
+    TimerSystem,
+)
 from engine.ecs.world import World
 from engine.math.vector2 import Vector2
 
@@ -277,6 +285,58 @@ class ComponentAndWorldTests(unittest.TestCase):
         self.assertEqual(world.get_all_entities(), [])
         self.assertEqual(component.destroy_count, 1)
         self.assertEqual(system.stop_count, 1)
+
+
+class RenderSystemTests(unittest.TestCase):
+    def add_sprite(self, world, position, shape, size=None):
+        entity = world.create_entity()
+        world.add_component(entity, TransformComponent(position))
+        world.add_component(entity, SpriteComponent(color='#123456', size=size, shape=shape))
+        return entity
+
+    def test_circle_sprite_draws_a_circle(self):
+        renderer = MagicMock()
+        world = World()
+        world.add_system(RenderSystem(renderer))
+        self.add_sprite(world, Vector2(10, 20), 'circle', Vector2(30, 30))
+
+        world.update(0)
+
+        renderer.draw_circle.assert_called_once_with(Vector2(10, 20), 15.0, '#123456')
+
+    def test_triangle_sprite_draws_a_polygon_without_crashing(self):
+        renderer = MagicMock()
+        world = World()
+        world.add_system(RenderSystem(renderer))
+        self.add_sprite(world, Vector2(0, 0), 'triangle', Vector2(20, 20))
+
+        world.update(0)
+
+        renderer.draw_polygon.assert_called_once()
+        points, color = renderer.draw_polygon.call_args.args
+        self.assertEqual(color, '#123456')
+        self.assertEqual(len(points), 3)
+
+    def test_rectangle_sprite_draws_a_rectangle(self):
+        renderer = MagicMock()
+        world = World()
+        world.add_system(RenderSystem(renderer))
+        self.add_sprite(world, Vector2(5, 5), 'rectangle', Vector2(10, 10))
+
+        world.update(0)
+
+        renderer.draw_rectangle.assert_called_once()
+
+    def test_invisible_sprite_is_skipped(self):
+        renderer = MagicMock()
+        world = World()
+        world.add_system(RenderSystem(renderer))
+        entity = self.add_sprite(world, Vector2.zero(), 'circle')
+        world.get_component(entity, SpriteComponent).visible = False
+
+        world.update(0)
+
+        renderer.draw_circle.assert_not_called()
 
 
 if __name__ == '__main__':

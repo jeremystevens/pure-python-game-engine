@@ -52,8 +52,18 @@ class RenderSystem(System):
                 if sprite.shape == 'circle':
                     self.renderer.draw_circle(transform.position, sprite.size.x / 2, sprite.color)
                 elif sprite.shape == 'triangle':
-                    # Simple triangle rendering
-                    self.renderer.draw_triangle(transform.position, sprite.size, sprite.color, transform.rotation)
+                    half_width = sprite.size.x / 2
+                    half_height = sprite.size.y / 2
+                    local_points = [
+                        Vector2(0, -half_height),
+                        Vector2(-half_width, half_height),
+                        Vector2(half_width, half_height),
+                    ]
+                    world_points = [
+                        transform.position + point.rotate(transform.rotation)
+                        for point in local_points
+                    ]
+                    self.renderer.draw_polygon(world_points, sprite.color)
                 else:  # rectangle
                     self.renderer.draw_rectangle(transform.position - sprite.size / 2, sprite.size, sprite.color, transform.rotation)
 
