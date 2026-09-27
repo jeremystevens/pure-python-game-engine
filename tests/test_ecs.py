@@ -317,7 +317,7 @@ class RenderSystemTests(unittest.TestCase):
         self.assertEqual(color, '#123456')
         self.assertEqual(len(points), 3)
 
-    def test_rectangle_sprite_draws_a_rectangle(self):
+    def test_rectangle_sprite_is_centered_on_the_transform_position(self):
         renderer = MagicMock()
         world = World()
         world.add_system(RenderSystem(renderer))
@@ -325,7 +325,10 @@ class RenderSystemTests(unittest.TestCase):
 
         world.update(0)
 
-        renderer.draw_rectangle.assert_called_once()
+        position, size, color, rotation = renderer.draw_rectangle.call_args.args
+        self.assertEqual(position, Vector2(5, 5))
+        self.assertEqual(size, Vector2(10, 10))
+        self.assertEqual(color, '#123456')
 
     def test_invisible_sprite_is_skipped(self):
         renderer = MagicMock()

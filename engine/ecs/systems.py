@@ -65,7 +65,7 @@ class RenderSystem(System):
                     ]
                     self.renderer.draw_polygon(world_points, sprite.color)
                 else:  # rectangle
-                    self.renderer.draw_rectangle(transform.position - sprite.size / 2, sprite.size, sprite.color, transform.rotation)
+                    self.renderer.draw_rectangle(transform.position, sprite.size, sprite.color, transform.rotation)
 
 
 class HealthSystem(System):
