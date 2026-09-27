@@ -21,6 +21,7 @@ from .collision.collider import (
     Collider,
     PointCollider,
 )
+from .debug.overlay import DebugOverlay
 from .input.input_manager import InputManager
 from .audio.sound_generator import SoundGenerator, Sound
 
@@ -45,6 +46,7 @@ __all__ = [
     'PointCollider',
     'CircleCollider',
     'AABBCollider',
+    'DebugOverlay',
     'InputManager',
     'SoundGenerator',
     'Sound'

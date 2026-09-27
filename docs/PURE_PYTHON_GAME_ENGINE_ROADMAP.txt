@@ -57,7 +57,7 @@ Option C: Build a deliberate hybrid
     • Keep GameObject as a friendly public facade backed internally by ECS entities and components.
     • Only choose this approach when its added complexity solves a specific problem.
 Decision: Option A accepted. GameObject/components are the primary supported architecture; ECS remains an explicitly imported experimental subsystem.
-Milestone 3: High-Value Engine Capabilities
+Milestone 3: High-Value Engine Capabilities — completed September 26, 2026
 1. Reusable collision system — completed September 26, 2026
     • Circle, rectangle, and point colliders.
     • AABB and circle intersection tests.
@@ -79,15 +79,22 @@ The system now provides cached Tkinter images, lazy sprite-sheet extraction, reu
     • Persistent objects across scene changes.
     • Clearly documented lifecycle callbacks and ordering.
 A SceneManager now provides the registry and stack on top of the existing Scene lifecycle. current_scene and load_scene(scene) still work unmodified, so existing games needed no changes; examples/games/ui_game.py is the reference implementation, including a pushed PauseScene overlay. Documented in docs/SCENE_MANAGEMENT.md.
-4. Development and debugging tools
+4. Development and debugging tools — completed September 26, 2026
     • Decide whether to complete hot reload or remove the empty placeholder files.
+      Decision: removed. Hot-reloading game code inside a live Tkinter event loop is
+      high-risk for the value it adds to this project's educational scope, so
+      engine/core/hot_reload.py and examples/demos/hot_reload.py were deleted instead
+      of completed.
     • Add a debug overlay for FPS, frame time, object count, and other useful statistics.
     • Add collider visualization.
     • Add runtime logging controls and object inspection.
     • Add lightweight profiling and slow-frame warnings.
+Every GameEngine now owns a DebugOverlay automatically: F3 toggles a stats overlay
+(FPS, frame time, object/collider counts, scene info), F4 toggles collider outlines,
+F5 cycles the global log level, and F6 logs a snapshot of the current scene's objects.
+Slow frames are logged as warnings automatically, no key required. Documented in
+docs/DEBUGGING.md; examples/demos/debug_tools.py is the reference demo.
 Known Items to Revisit
-    • engine/core/hot_reload.py is empty.
-    • examples/demos/hot_reload.py is empty.
     • Logging is not exposed through the main engine package API; ECS is intentionally available only through its experimental subpackage.
     • Renderer post-processing methods for bloom, blur, and retro effects are placeholders.
 Recommended Work Order
@@ -98,7 +105,7 @@ Recommended Work Order
     5. Reusable collision system. (Completed)
     6. Asset and animation improvements. (Completed)
     7. Scene-management improvements. (Completed)
-    8. Debugging tools and a decision on hot reload.
+    8. Debugging tools and a decision on hot reload. (Completed)
     9. README and API documentation updates.
     10. Another game only after the improved foundations can be exercised by it.
 First Working Session

@@ -13,6 +13,7 @@ This project proves that you can build sophisticated game engines without relyin
 - **Cross-Platform**: Uses tkinter for universal compatibility across Windows, macOS, and Linux
 - **Game Engine Architecture**: Professional game engine design patterns and structure
 - **Bounded Variable-Timestep Loop**: Responsive updates with smoothed, stall-safe delta time
+- **Built-in Debugging Tools**: Stats overlay, collider visualization, log control, and scene inspection on every engine
 - **2D/3D Hybrid Support**: Optional 3D mathematics with 2D rendering capabilities
 
 ### Scene System
@@ -67,6 +68,7 @@ This project proves that you can build sophisticated game engines without relyin
 │   ├── audio/               # Procedural sound generation
 │   ├── collision/           # Collider components and overlap detection
 │   ├── core/                # Main loop, window, and logging
+│   ├── debug/               # Stats overlay, collider visualization, scene inspection
 │   ├── ecs/                 # Experimental Entity Component System
 │   ├── graphics/            # Canvas renderer and sprites
 │   ├── input/               # Keyboard, mouse, and input profiles
@@ -157,9 +159,8 @@ python -m examples.demos.ecs
 python -m examples.demos.input_profiles
 python -m examples.demos.logging
 python -m examples.demos.scene_management
+python -m examples.demos.debug_tools
 ```
-
-`examples/demos/hot_reload.py` is reserved for the unfinished hot-reload demonstration.
 
 ### Asteroids Controls
 
@@ -268,6 +269,22 @@ self.pop_scene()              # remove the overlay, resume what's beneath
 ```
 
 `current_scene` and `load_scene(scene)` still work exactly as before, so no existing game needed changes. See [`docs/SCENE_MANAGEMENT.md`](docs/SCENE_MANAGEMENT.md) for lifecycle ordering, stack semantics, and persistent-object rules. `examples/games/ui_game.py` is the reference implementation, including a pushed `PauseScene`.
+
+### Debugging Tools
+
+Every `GameEngine` owns a `DebugOverlay` automatically — no setup, and no existing game needed to change anything:
+
+```python
+# F3 stats overlay | F4 collider outlines | F5 cycle log level | F6 inspect scene
+```
+
+Slow frames are logged automatically too, with no key required:
+
+```
+[Debug] [WARNING] Slow frame: 41.2ms (target 16.7ms)
+```
+
+See [`docs/DEBUGGING.md`](docs/DEBUGGING.md) for the full key reference and current scope, and run `python -m examples.demos.debug_tools` for bouncing colliders plus a deliberate periodic hitch to see the slow-frame warning fire on cue.
 
 ### Pure Python Rendering
 Custom 2D renderer built on tkinter Canvas:

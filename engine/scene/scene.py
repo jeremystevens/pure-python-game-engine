@@ -2,7 +2,6 @@
 
 from typing import Any, Dict, List, Optional
 
-from ..collision.system import CollisionSystem
 from ..graphics.renderer import Renderer
 from .game_object import GameObject
 
@@ -11,6 +10,11 @@ class Scene:
     """Organize GameObjects with deterministic lifecycle and mutation points."""
 
     def __init__(self, name: str = "Untitled Scene"):
+        # Imported lazily: engine.collision depends on Component from this
+        # package, so importing CollisionSystem at module level here would
+        # create a circular import depending on which package loads first.
+        from ..collision.system import CollisionSystem
+
         self.name = name
         self.game_objects: List[GameObject] = []
         self.objects_by_name: Dict[str, GameObject] = {}

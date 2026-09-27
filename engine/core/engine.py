@@ -4,6 +4,7 @@ Main game engine class that orchestrates all systems
 from typing import Optional
 from .window import Window
 from ..assets.asset_manager import AssetManager
+from ..debug.overlay import DebugOverlay
 from ..scene.scene import Scene
 from ..scene.scene_manager import SceneManager
 from ..input.input_manager import InputManager
@@ -33,7 +34,8 @@ class GameEngine:
         self.input_manager = InputManager()
         self.renderer = Renderer(self.window.canvas)
         self.asset_manager = AssetManager(asset_root)
-        
+        self.debug_overlay = DebugOverlay(self)
+
         # Connect input manager to window
         self.window.set_key_press_callback(self.input_manager.on_key_press)
         self.window.set_key_release_callback(self.input_manager.on_key_release)
@@ -124,6 +126,7 @@ class GameEngine:
                 self.total_time += self.delta_time
 
                 self.input_manager.update()
+                self.debug_overlay.handle_input(self.input_manager)
 
                 self.scene_manager.update(self.delta_time)
 
@@ -134,7 +137,9 @@ class GameEngine:
                 self.scene_manager.render(self.renderer)
 
                 self.render()
+                self.debug_overlay.render(self.renderer, self.current_scene)
                 self.window.update()
+                self.debug_overlay.record_frame(self.window.raw_delta_time)
         finally:
             self.is_running = False
             try:

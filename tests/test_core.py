@@ -123,6 +123,7 @@ class FakeWindow:
     def __init__(self, log, delta_time=0.02):
         self.log = log
         self.delta_time = delta_time
+        self.raw_delta_time = delta_time
         self.actual_fps = 50.0
         self.canvas = object()
         self.closed = False
@@ -175,6 +176,9 @@ class FakeInputManager:
 
     def on_mouse_event(self, event_type, button, x, y):
         pass
+
+    def is_key_just_pressed(self, key):
+        return False
 
     def update(self):
         self.log.append('input.update')
