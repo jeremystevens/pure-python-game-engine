@@ -22,7 +22,6 @@ This project proves that you can build sophisticated game engines without relyin
 - **Persistent Objects**: Carry selected objects safely across scene replacements
 - **GameObject Architecture**: Component-based game objects with transform hierarchy
 - **Component System**: Modular components for extending game object functionality
-- **Object Pooling**: Efficient memory management for game objects
 
 ### Mathematics (Built from Scratch)
 - **Vector2**: Comprehensive 2D vector implementation with all standard operations
@@ -46,11 +45,10 @@ This project proves that you can build sophisticated game engines without relyin
 - **Event-Driven**: Proper event handling with frame-accurate input detection
 
 ### Audio System
-- **Procedural Sound Generation**: Create sound effects using mathematical waveforms
-- **Multiple Wave Types**: Support for sine, square, sawtooth, triangle, and noise waves
+- **Procedural Sound Generation**: Real waveform sample generation — sine, square, sawtooth, triangle, and noise
 - **Sound Effects**: Built-in generators for bullets, explosions, and engine sounds
 - **No External Dependencies**: Audio system built entirely with Python standard library
-- **Real-time Playback**: Thread-based sound playback system
+- **Terminal-Bell Playback**: Approximates distinct sounds by rhythm and timing, not actual audio output — see [`docs/AUDIO.md`](docs/AUDIO.md) for why and what that means in practice
 
 ### Assets and Animation
 - **Central Image Cache**: Canonical path resolution and identity reuse
@@ -285,6 +283,19 @@ Slow frames are logged automatically too, with no key required:
 ```
 
 See [`docs/DEBUGGING.md`](docs/DEBUGGING.md) for the full key reference and current scope, and run `python -m examples.demos.debug_tools` for bouncing colliders plus a deliberate periodic hitch to see the slow-frame warning fire on cue.
+
+### Audio System
+
+`SoundGenerator` computes real PCM sample data — sine, square, sawtooth, triangle, and filtered-noise waveforms — with no external dependencies:
+
+```python
+from engine.audio.sound_generator import Sound
+
+laser = Sound('laser')
+laser.generate_sweep(800, 200, 0.1, 'square', 0.3)
+```
+
+Those samples are never actually sent to an audio output device, though — there's no cross-platform way to do that from the standard library alone. Playback is approximated with the terminal bell (`\a`), timed and repeated based on each sound's generation metadata (noise, continuous, or average frequency) rather than truly reproducing its pitch. See [`docs/AUDIO.md`](docs/AUDIO.md) for exactly what that means and why.
 
 ### Pure Python Rendering
 Custom 2D renderer built on tkinter Canvas:
