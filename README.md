@@ -76,7 +76,7 @@ This project proves that you can build sophisticated game engines without relyin
 │   ├── games/               # Complete playable games
 │   └── demos/               # Focused engine feature demonstrations
 ├── tests/                   # Headless standard-library test suite
-├── docs/                    # Project roadmap and supporting documents
+├── docs/                    # Developer guide, subsystem references, and project roadmap
 ├── README.md
 └── LICENSE
 ```
@@ -100,6 +100,10 @@ The headless test suite uses Python's standard-library `unittest` framework and 
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+## 📘 Learn the Engine
+
+**New here? Start with [`docs/GAME_DEVELOPER_GUIDE.md`](docs/GAME_DEVELOPER_GUIDE.md).** It's a single, self-contained walkthrough that builds a complete small game step by step, in the order you'd actually build one — from opening a window through movement, collisions, sound, and multiple scenes. The reference games under `examples/games/` are excellent once you know the basics, but they're advanced reference material, not a tutorial; the developer guide is the intended starting point.
 
 ## 🎮 Quick Start
 
