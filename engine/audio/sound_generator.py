@@ -187,11 +187,13 @@ class SoundGenerator:
         return self._backend is not None
 
     def shutdown(self):
-        """Release the real audio device, if one was opened.
+        """Release the real audio device now, if one was opened.
 
-        Safe to call even when no real backend exists. Call this from your
-        game's ``cleanup()`` for deterministic teardown instead of relying
-        on garbage collection to close the device eventually.
+        Safe to call even when no real backend exists. An atexit hook
+        already closes the device automatically when your process exits
+        (it holds a native self-reference and is never garbage-collected
+        on its own), so calling this yourself is only useful for earlier,
+        deterministic teardown -- for example, between levels.
         """
         if self._backend is not None:
             self._backend.close()

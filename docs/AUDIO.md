@@ -38,7 +38,7 @@ So the engine offers both, and picks automatically:
 
 Check which path is active with `sound_generator.real_audio_enabled` (`True`/`False`). Run `python -m examples.games.asteroids_game` with the extra installed to hear the difference directly — its engine hum, bullet laser, and explosion sounds all use the built-in trio described below.
 
-`SoundGenerator.shutdown()` releases the real device deterministically; call it from your game's `cleanup()` rather than relying on garbage collection to close it eventually.
+The real device is never garbage-collected on its own — it holds a native reference to itself so `miniaudio`'s C callback can look it up — so an `atexit` hook closes it automatically when your process exits, and every existing game keeps working with zero code changes. Call `SoundGenerator.shutdown()` yourself only if you want the device released earlier and deterministically (for example, between levels), not to avoid a hang.
 
 ### Why an optional dependency, not a required one
 

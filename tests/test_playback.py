@@ -97,6 +97,20 @@ class RealAudioBackendTests(unittest.TestCase):
         backend.close()
         device.close.assert_called_once()
 
+    def test_backend_registers_an_atexit_close_as_a_hang_safety_net(self):
+        # The open device holds a native self-reference and is never
+        # garbage-collected on its own -- confirmed by observation: a
+        # process that builds a real backend and never calls close()
+        # hangs forever instead of exiting. atexit is what lets every
+        # existing game keep working with zero code changes once the
+        # optional extra is installed.
+        fake_miniaudio, _ = self._fake_miniaudio()
+        with mock.patch('engine.audio.playback.miniaudio', fake_miniaudio), \
+                mock.patch('engine.audio.playback.atexit') as fake_atexit:
+            backend = RealAudioBackend(sample_rate=22050)
+
+        fake_atexit.register.assert_called_once_with(backend.close)
+
     def test_backend_raises_when_miniaudio_is_not_installed(self):
         with mock.patch('engine.audio.playback.miniaudio', None):
             with self.assertRaises(RuntimeError):

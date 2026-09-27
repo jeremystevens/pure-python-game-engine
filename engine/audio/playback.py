@@ -15,6 +15,7 @@ approximation exactly as it did before this module existed.
 """
 
 import array
+import atexit
 import threading
 from typing import Dict, List, Sequence
 
@@ -99,6 +100,15 @@ class RealAudioBackend:
             buffersize_msec=50,
         )
         self._device.start(generator)
+
+        # The open device holds a native reference to itself (miniaudio's
+        # C callback needs to look the Python object back up), so it is
+        # never garbage-collected on its own -- without this, a process
+        # that never calls SoundGenerator.shutdown() explicitly hangs
+        # forever after the game window closes, instead of exiting. This
+        # is what lets every existing game keep working with zero code
+        # changes once the optional extra is installed.
+        atexit.register(self.close)
 
     def play(self, samples: Sequence[float]):
         """Mix a sound's samples into the ongoing playback."""
