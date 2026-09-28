@@ -2,7 +2,7 @@
 
 A single, self-contained walkthrough for building a game with this engine — ordered the way you'd actually build one, not alphabetized by subsystem. Every code sample below is copy-pasteable and has been run against the real engine.
 
-This guide covers the *common path*. For depth on any one system — full API surface, edge cases, current limitations — the per-subsystem docs remain the backup reference: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`COLLISION.md`](COLLISION.md), [`ASSETS_AND_ANIMATION.md`](ASSETS_AND_ANIMATION.md), [`AUDIO.md`](AUDIO.md), [`SCENE_MANAGEMENT.md`](SCENE_MANAGEMENT.md), [`DEBUGGING.md`](DEBUGGING.md). Nothing here duplicates them; it sequences and introduces the same ground.
+This guide covers the *common path*. For depth on any one system — full API surface, edge cases, current limitations — the per-subsystem docs remain the backup reference: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`COLLISION.md`](COLLISION.md), [`ASSETS_AND_ANIMATION.md`](ASSETS_AND_ANIMATION.md), [`AUDIO.md`](AUDIO.md), [`SCENE_MANAGEMENT.md`](SCENE_MANAGEMENT.md), [`DEBUGGING.md`](DEBUGGING.md), [`PACKAGING.md`](PACKAGING.md). Nothing here duplicates them; it sequences and introduces the same ground.
 
 ## Table of Contents
 
@@ -458,3 +458,4 @@ The version at the end of [section 10](#10-multiple-scenes) is the complete, run
 - Read the reference games in `examples/games/` — `breakout_game.py`, `asteroids_game.py`, `lane_crosser.py`, and others are not tutorials, but they show these same systems combined at full scale, including patterns this guide skipped (transform hierarchies, input profiles, persistent objects across scenes).
 - Run the focused demos in `examples/demos/` for a single subsystem in isolation — `python -m examples.demos.atlas`, `python -m examples.demos.debug_tools`, `python -m examples.demos.scene_management`, and others.
 - The per-subsystem docs linked throughout this guide cover everything left out here: collision layers/masks in depth, the full animation playback API, transform hierarchies and 3D/quaternion support, and the architectural decision behind why `GameObject`/`Component` — not the experimental ECS under `engine.ecs` — is the primary API.
+- Ready to share what you built? [`PACKAGING.md`](PACKAGING.md) covers turning your game into a standalone executable that runs without Python installed, including bundling images and real audio.

@@ -184,6 +184,10 @@ The examples demonstrate:
 - **Procedural audio generation**
 - Complete game state management
 
+## 📦 Distributing Your Game
+
+Once your game is ready to share, package it into a standalone executable that runs on a machine with no Python installed — see [`docs/PACKAGING.md`](docs/PACKAGING.md) for a step-by-step guide covering PyInstaller, bundling real image/audio assets, and the platform-specific gotchas that break silently if skipped.
+
 ## 📸 Showcase
 
 ### Lane Crosser
